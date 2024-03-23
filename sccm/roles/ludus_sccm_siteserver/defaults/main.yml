@@ -1,0 +1,62 @@
+---
+sitecode: 123
+sitename: Primary Site
+
+SCCM_SITE_SERVER_HOSTNAME: 'sccm-sitesrv'
+SCCM_DISTRO_SERVER_HOSTNAME: 'sccm-distro'
+SCCM_MGMT_SERVER_HOSTNAME: 'sccm-mgmt'
+SCCM_SQL_SERVER_HOSTNAME: 'sccm-sql'
+
+#--------------------------Network Access Account--------------------------------
+ConfigureNAA: false
+NAA_USERNAME: ''
+NAA_PASSWORD: ''
+#--------------------------Client Push Account-----------------------------------------
+ConfigureClientPush: true
+PUSH_USERNAME: 'sccm_push'
+PUSH_PASSWORD: 'password'
+EnableAutomaticClientPushInstallation: true
+EnableSystemTypeConfigurationManager: true
+EnableSystemTypeServer: true
+EnableSystemTypeWorkstation: true
+InstallClientToDomainController: false
+AllownNTLMFallback: true
+#--------------------------Task Sequence Account---------------------------------------
+ConfigureTaskSequence: true
+TASKSEQ_USERNAME: 'sccm_push'
+TASKSEQ_PASSWORD: 'password'
+#--------------------------Task Sequence - Domain Join Account-------------------------
+ConfigureDomainJoin: true
+DOMAINJOIN_USERNAME: 'sccm_push'
+DOMAINJOIN_PASSWORD: 'password'
+#---------------------------Discovery Methods------------------------------------------
+ActiveDirectoryForestDiscovery: true
+EnableActiveDirectorySiteBoundaryCreation: true
+EnableSubnetBoundaryCreation: true
+ActiveDirectoryGroupDiscovery: true
+ActiveDirectorySystemDiscovery: true
+ActiveDirectoryUserDiscovery: true
+
+#---------------------------Pushover----------------------------------
+pushover: false
+msg: ''
+app_token: ''
+user_key: ''
+
+#---------------------------Do Not Change Below----------------------------------
+system_management_template: SystemManagement.ps1.j2
+
+win_sccm_config_default_template: ConfigMgrSetup.ini.j2
+win_sccm_config_default_prereq_path: C:\SCCM 
+
+configmgr_url: https://go.microsoft.com/fwlink/p/?LinkID=2195628&clcid=0x409&culture=en-us&country=us
+
+adksetup_url: https://download.microsoft.com/download/0/1/C/01CC78AA-B53B-4884-B7EA-74F2878AA79F/adk/adksetup.exe
+adksetup_arguments: /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool
+adksetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\User State Migration Tool\\amd64\\wdscore.dll"
+
+adkwinpesetup_url: https://download.microsoft.com/download/D/7/E/D7E22261-D0B3-4ED6-8151-5E002C7F823D/adkwinpeaddons/adkwinpesetup.exe
+adkwinpesetup_arguments: /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment
+adkwinpesetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\Windows Preinstallation Environment\\copype.cmd"
+
+

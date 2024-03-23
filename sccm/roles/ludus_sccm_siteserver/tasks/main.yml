@@ -1,0 +1,79 @@
+---
+- name: Enable update service
+  ansible.windows.win_service:
+    name: Windows Update
+    state: started
+    start_mode: auto
+
+- name: Disable Domain firewall
+  community.windows.win_firewall:
+    state: disabled
+    profiles:
+    - Domain
+    - Public
+    - Private
+
+- name: Install Windows Features
+  ansible.windows.win_feature:
+    name:
+      - NET-Framework-Core 
+      - NET-Framework-45-Core 
+      - RDC 
+      - RSAT
+      - GPMC
+      - Web-WebServer
+      - Web-Common-Http
+      - Web-Dir-Browsing
+      - Web-Http-Errors
+      - Web-Static-Content
+      - Web-Default-Doc
+      - Web-Http-Redirect
+      - Web-Mgmt-Tools
+      - Web-Mgmt-Console
+      - Web-Mgmt-Compat
+      - Web-Metabase
+      - Web-WMI
+      - Web-Windows-Auth
+      - Web-ISAPI-Ext
+      - Web-Scripting-Tools
+      - Web-Mgmt-Service
+      - BITS
+      - BITS-IIS-Ext
+    state: present
+
+#Start SCCM Install-------------------------------------------------------------------
+- name: Begin SCCM Install
+  ansible.builtin.include_tasks:
+    file: install_sccm.yml
+
+#Start CM Account Configuration-------------------------------------------------------
+- name: Begin CM Account Configuration
+  ansible.builtin.include_tasks:
+    file: cm_accounts.yml
+  
+#Start NAA Configuration--------------------------------------------------------------
+- name: Begin NAA Configuration
+  ansible.builtin.include_tasks:
+    file: config_naa.yml
+  when: ConfigureNAA
+
+#Configure Push Account---------------------------------------------------------------
+- name: Configure Push Client Installation 
+  ansible.builtin.include_tasks:
+    file: client_push.yml
+  when: ConfigureClientPush
+
+#Configure Discovery Methods----------------------------------------------------------
+- name: Configure Discovery Methods
+  ansible.builtin.include_tasks:
+    file: discovery_methods.yml
+
+
+#Pushover-----------------------------------------------------------------------------
+- name: Send Complete Notifications via Pushover.net
+  community.general.pushover:
+    msg: 'Lab Setup Complete'
+    app_token: '{{ app_token }}'
+    user_key: '{{ user_key }}'
+  delegate_to: localhost
+  when: pushover

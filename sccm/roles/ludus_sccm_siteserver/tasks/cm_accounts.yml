@@ -1,0 +1,40 @@
+---
+- name: Create Domain Users Needed for SCCM
+  microsoft.ad.user:
+    name: '{{ user_creation.name }}'
+    password: '{{ user_creation.password }}'
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  loop: 
+    - { configure_bool: '{{ ConfigureNAA }}', name: '{{ NAA_USERNAME }}', password: '{{ NAA_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureClientPush }}', name: '{{ PUSH_USERNAME }}', password: '{{ PUSH_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureTaskSequence }}', name: '{{ TASKSEQ_USERNAME }}', password: '{{ TASKSEQ_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureDomainJoin }}', name: '{{ DOMAINJOIN_USERNAME }}', password: '{{ DOMAINJOIN_PASSWORD}}'}
+  loop_control:
+    loop_var: user_creation
+  when: user_creation.configure_bool
+
+- name: Create CM Accounts for Each Domain User
+  autolabs.sccm.cmaccounts:
+    name: '{{ cm_creation.name }}'
+    password: '{{ cm_creation.password }}'
+    site_code: '{{ sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  loop: 
+    - { configure_bool: '{{ ConfigureNAA }}', name: '{{ ludus_domain_netbios_name }}\{{ NAA_USERNAME }}', password: '{{ NAA_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureClientPush }}', name: '{{ ludus_domain_netbios_name }}\{{ PUSH_USERNAME}}', password: '{{ PUSH_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureTaskSequence }}', name: '{{ ludus_domain_netbios_name }}\{{ TASKSEQ_USERNAME }}', password: '{{ TASKSEQ_PASSWORD }}'}
+    - { configure_bool: '{{ ConfigureDomainJoin }}', name: '{{ ludus_domain_netbios_name }}\{{ DOMAINJOIN_USERNAME }}', password: '{{ DOMAINJOIN_PASSWORD}}'}
+  loop_control:
+    loop_var: cm_creation
+  when: cm_creation.configure_bool

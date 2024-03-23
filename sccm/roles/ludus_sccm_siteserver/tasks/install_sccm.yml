@@ -1,0 +1,106 @@
+---
+- name: Download adksetup.exe
+  ansible.windows.win_get_url:
+    url: "{{ adksetup_url }}"
+    dest: C:\adksetup.exe
+  
+- name: Download adkwinpesetup.exe
+  ansible.windows.win_get_url:
+    url: "{{ adkwinpesetup_url }}"
+    dest: C:\adkwinpesetup.exe
+
+- name: Install adksetup.exe
+  ansible.windows.win_command: 'C:\adksetup.exe /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool'
+  args:
+    creates: "{{ adksetup_creates_path }}"
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Install adkwinpesetup
+  ansible.windows.win_command: 'C:\adkwinpesetup.exe /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment'
+  args:
+    creates: "{{ adkwinpesetup_creates_path }}"
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Check if the Configmgr_2023 file exists
+  win_stat:
+    path: "C:\\MCM_Configmgr_2303.exe"
+  register: file_stat
+
+- name: Download Configmgr_2023
+  ansible.windows.win_get_url:
+    url: "{{ configmgr_url }}"
+    dest: C:\MCM_Configmgr_2303.exe
+  when: not file_stat.stat.exists
+
+- name: Unzip Setup
+  ansible.windows.win_command: 'C:\MCM_Configmgr_2303.exe /s -dC:\'
+  args:
+    creates: C:\cd.retail.LN
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Template ConfigMgrSetup.ini
+  ansible.windows.win_template:
+   src: "{{ win_sccm_config_default_template }}" 
+   dest: C:\ConfigMgrSetup.ini
+
+- name: Template SystemManagement.ps1
+  ansible.windows.win_template:
+   src: "{{ system_management_template }}" 
+   dest: C:\SystemManagement.ps1
+
+- name: Create SCCM pre-req folder
+  ansible.windows.win_file:
+    path: "{{ win_sccm_config_default_prereq_path }}" 
+    state: directory
+
+- name: Create System Management Container and Configure Permissions
+  ansible.windows.win_shell: |
+   C:\SystemManagement.ps1
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Extend Schema
+  ansible.windows.win_shell: |
+   C:\cd.retail.LN\SMSSETUP\BIN\X64\extadsch.exe
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Setup SCCM
+  ansible.windows.win_shell: |
+   C:\cd.retail.LN\SMSSETUP\BIN\X64\setup.exe /script C:\ConfigMgrSetup.ini
+  register: setup_configmgr
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  args:
+    creates: "C:\\Program Files\\Microsoft Configuration Manager\\bin\\x64\\ccm.dll"
+
+- name: Reboot after SCCM site installation
+  ansible.windows.win_reboot:
+  when: setup_configmgr.changed
