@@ -145,7 +145,7 @@ ludus:
       ActiveDirectorySystemDiscovery: true
       ActiveDirectoryUserDiscovery: true
       #-----------------------------Pushover-------------------------------------------------
-      pushover: true                              #Default = false
+      pushover: false                              #Default = false
       msg: 'Lab Setup Complete'                   #Default = ''
       app_token: '' #Default = ''
       user_key: ''  #Default = ''
