@@ -1,0 +1,153 @@
+defaults: #Ludus defaults. Really no reason to change these unless you want something specific.
+  router_vm_name: "{{ range_id }}-router-debian11-x64"
+  snapshot_with_RAM: true
+  stale_hours: 0
+  ad_domain_functional_level: Win2012R2
+  ad_forest_functional_level: Win2012R2
+  ad_domain_admin: domainadmin
+  ad_domain_admin_password: password
+  ad_domain_user: domainuser
+  ad_domain_user_password: password
+  ad_domain_safe_mode_password: password
+
+#Begin Lab Configuration
+ludus:
+  - vm_name: "DC01"
+    hostname: "DC01"
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 10
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: primary-dc
+
+  - vm_name: "Workstation"
+    hostname: "Workstation"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 10
+    ip_last_octet: 11
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: member
+    roles:
+      - autolabs.sccm.disable_firewall
+  
+  - vm_name: "sccm-distro"
+    hostname: "sccm-distro"
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 12
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: member
+    roles:
+      - autolabs.sccm.ludus_sccm_distro
+    role_vars: 
+      SCCM_SITE_SERVER_HOSTNAME: 'sccm-sitesrv'                     #Default = 'sccm-sitesrv'
+  
+  - vm_name: "sccm-sql"
+    hostname: "sccm-sql"
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 13
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: member
+    roles:
+      - autolabs.sccm.ludus_sccm_sql
+    role_vars: 
+      SCCM_SITE_SERVER_HOSTNAME: 'sccm-sitesrv'                        #Default = 'sccm-sitesrv'
+      SCCM_SQL_SERVER_HOSTNAME: 'sccm-sql'                             #Default = 'sccm-sql'
+      SQLSVCACCOUNT: 'sqlsccmsvc'                                      #Default = 'sqlsccmsvc'
+      SQLSVCPASSWORD: 'Password123' #Must Meet Complexity Requirements #Default = 'Password123' 
+
+  - vm_name: "sccm-mgmt"
+    hostname: "sccm-mgmt"
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 14
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: member
+    roles:
+      - autolabs.sccm.ludus_sccm_mgmt
+    role_vars: 
+      SCCM_SITE_SERVER_HOSTNAME: 'sccm-sitesrv'                     #Default = 'sccm-sitesrv'
+
+  - vm_name: "sccm-sitesrv"
+    hostname: "sccm-sitesrv" #If changed, you need to update the "SCCM_SITE_SERVER_HOSTNAME" variables in this config
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 15
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: member
+    roles:
+      - autolabs.sccm.ludus_sccm_siteserver
+    role_vars: 
+      sitecode: 123                              #Default = 123
+      sitename: Primary Site                     #Default = Primary Site
+      SCCM_SITE_SERVER_HOSTNAME: 'sccm-sitesrv'  #Default = 'sccm-sitesrv'
+      SCCM_DISTRO_SERVER_HOSTNAME: 'sccm-distro' #Default = 'sccm-distro'
+      SCCM_MGMT_SERVER_HOSTNAME: 'sccm-mgmt'     #Default = 'sccm-mgmt'   
+      SCCM_SQL_SERVER_HOSTNAME: 'sccm-sql'       #Default = 'sccm-sql' 
+      #--------------------------NAA Account-------------------------------------------------
+      ConfigureNAA: true
+      NAA_USERNAME: 'sccm_naa'
+      NAA_PASSWORD: 'Password123'
+      #--------------------------Client Push Account-----------------------------------------
+      ConfigureClientPush: true
+      PUSH_USERNAME: 'sccm_push'
+      PUSH_PASSWORD: 'Password123'
+      EnableAutomaticClientPushInstallation: true
+      EnableSystemTypeConfigurationManager: true
+      EnableSystemTypeServer: true
+      EnableSystemTypeWorkstation: true
+      InstallClientToDomainController: false
+      AllownNTLMFallback: true
+      #--------------------------Task Sequence Account---------------------------------------
+      ConfigureTaskSequence: true
+      TASKSEQ_USERNAME: 'sccm_task'
+      TASKSEQ_PASSWORD: 'Password123'
+      #--------------------------Task Sequence - Domain Join Account-------------------------
+      ConfigureDomainJoin: true
+      DOMAINJOIN_USERNAME: 'sccm_domainjoin'
+      DOMAINJOIN_PASSWORD: 'Password123'
+      #---------------------------Discovery Methods------------------------------------------
+      ActiveDirectoryForestDiscovery: true
+      EnableActiveDirectorySiteBoundaryCreation: true
+      EnableSubnetBoundaryCreation: true
+      ActiveDirectoryGroupDiscovery: true
+      ActiveDirectorySystemDiscovery: true
+      ActiveDirectoryUserDiscovery: true
+      #-----------------------------Pushover-------------------------------------------------
+      pushover: true                              #Default = false
+      msg: 'Lab Setup Complete'                   #Default = ''
+      app_token: '' #Default = ''
+      user_key: ''  #Default = ''
+      
+   
