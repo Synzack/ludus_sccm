@@ -2,7 +2,7 @@
 
 This collection includes Ansible roles to install and configure SCCM. For a good example of the collection's usage, see the `sccm-range-config.yml`.
 
-Roles included in this collection (click on the link to see the role's README and documentation):
+Roles included in this collection:
 
   - `synzack.ludus_sccm.disable_firewall` 
   - `synzack.ludus_sccm.ludus_sccm_distro`
@@ -20,15 +20,17 @@ ludus ansible collection add synzack.ludus_sccm
 
 ### Role Requirements
 
-Requires separate installation of the `?` role. Because Ansible collections are not able to depend on roles, you will need to make sure that role is installed either by manually installing it with the `ludus ansible role add` command:
+None
+
+<!-- Requires separate installation of the `?` role. Because Ansible collections are not able to depend on roles, you will need to make sure that role is installed either by manually installing it with the `ludus ansible role add` command:
 
 ```
 ludus ansible role add ?
-```
+``` -->
 
 ## Usage
 
-Here's an example playbook which installs some Mac Apps (assuming you are signed into the App Store), CLI tools via Homebrew, and Cask Apps using Homebrew:
+Here's an example Ludus configuration that uses this module to set up a full SCCM deployment:
 
 ```yaml
 ludus:
@@ -58,10 +60,10 @@ ludus:
       fqdn: ludus.domain
       role: member
     roles:
-      - ludus_sccm.disable_firewall
-  
-  - vm_name: "sccm-distro"
-    hostname: "sccm-distro"
+      - synzack.ludus_sccm.disable_firewall
+
+  - vm_name: "{{ range_id }}-sccm-distro"
+    hostname: "{{ range_id }}-sccm-distro"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
@@ -73,12 +75,12 @@ ludus:
       fqdn: ludus.domain
       role: member
     roles:
-      - ludus_sccm.ludus_sccm_distro
-    role_vars: 
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv' # Default = 'sccm-sitesrv'
-  
-  - vm_name: "sccm-sql"
-    hostname: "sccm-sql"
+      - synzack.ludus_sccm.ludus_sccm_distro
+    role_vars:
+      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv' # Default = 'sccm-sitesrv'
+
+  - vm_name: "{{ range_id }}-sccm-sql"
+    hostname: "{{ range_id }}-sccm-sql"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 13
@@ -90,15 +92,15 @@ ludus:
       fqdn: ludus.domain
       role: member
     roles:
-      - ludus_sccm.ludus_sccm_sql
-    role_vars: 
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    # Default = 'sccm-sitesrv'
-      ludus_sccm_sql_server_hostname: 'sccm-sql'         # Default = 'sccm-sql'
+      - synzack.ludus_sccm.ludus_sccm_sql
+    role_vars:
+      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv'    # Default = 'sccm-sitesrv'
+      ludus_sccm_sql_server_hostname: '{{ range_id }}-sccm-sql'         # Default = 'sccm-sql'
       ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  # Default = 'sqlsccmsvc'
       ludus_sccm_sql_svc_account_password: 'Password123' # Default = 'Password123' - Must Meet Complexity Requirements
 
-  - vm_name: "sccm-mgmt"
-    hostname: "sccm-mgmt"
+  - vm_name: "{{ range_id }}-sccm-mgmt"
+    hostname: "{{ range_id }}-sccm-mgmt"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 14
@@ -110,12 +112,12 @@ ludus:
       fqdn: ludus.domain
       role: member
     roles:
-      - ludus_sccm.ludus_sccm_mgmt
-    role_vars: 
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv' # Default = 'sccm-sitesrv'
+      - synzack.ludus_sccm.ludus_sccm_mgmt
+    role_vars:
+      ludus_sccm_site_server_hostname: "{{ range_id }}-sccm-sitesrv" # Default = 'sccm-sitesrv'
 
-  - vm_name: "sccm-sitesrv"
-    hostname: "sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config
+  - vm_name: "{{ range_id }}-sccm-sitesrv"
+    hostname: "{{ range_id }}-sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
@@ -127,19 +129,19 @@ ludus:
       fqdn: ludus.domain
       role: member
     roles:
-      - ludus_sccm.ludus_sccm_siteserver
-    role_vars: 
-      ludus_sccm_sitecode: 123                         # Default = 123
-      ludus_sccm_sitename: Primary Site                # Default = Primary Site
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  # Default = 'sccm-sitesrv'
-      ludus_sccm_distro_server_hostname: 'sccm-distro' # Default = 'sccm-distro'
-      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     # Default = 'sccm-mgmt'   
-      ludus_sccm_sql_server_hostname: 'sccm-sql'       # Default = 'sccm-sql' 
-      #--------------------------NAA Account-------------------------------------------------
+      - synzack.ludus_sccm.ludus_sccm_siteserver
+    role_vars:
+      ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
+      ludus_sccm_sitename: Primary Site  # Default = Primary Site
+      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv'  # Default = 'sccm-sitesrv'
+      ludus_sccm_distro_server_hostname: '{{ range_id }}-sccm-distro' # Default = 'sccm-distro'
+      ludus_sccm_mgmt_server_hostname: '{{ range_id }}-sccm-mgmt'     # Default = 'sccm-mgmt'
+      ludus_sccm_sql_server_hostname: '{{ range_id }}-sccm-sql'       # Default = 'sccm-sql'
+      # --------------------------NAA Account-------------------------------------------------
       ludus_sccm_configure_nna: true
       ludus_sccm_nna_username: 'sccm_naa'
       ludus_sccm_nna_password: 'Password123'
-      #--------------------------Client Push Account-----------------------------------------
+      # --------------------------Client Push Account-----------------------------------------
       ludus_sccm_configure_client_push: true
       ludus_sccm_client_push_username: 'sccm_push'
       ludus_sccm_client_push_password: 'Password123'
@@ -149,24 +151,24 @@ ludus:
       ludus_sccm_enable_system_type_workstation: true
       ludus_sccm_install_client_to_domain_controller: false
       ludus_sccm_allow_NTLM_fallback: true
-      #--------------------------Task Sequence Account---------------------------------------
+      # --------------------------Task Sequence Account---------------------------------------
       ludus_sccm_configure_task_sequence: true
       ludus_sccm_task_sequence_username: 'sccm_task'
       ludus_sccm_task_sequence_password: 'Password123'
-      #--------------------------Task Sequence - Domain Join Account-------------------------
+      # --------------------------Task Sequence - Domain Join Account-------------------------
       ludus_sccm_configure_domain_join: true
       ludus_sccm_domain_join_username: 'sccm_domainjoin'
       ludus_sccm_domain_join_password: 'Password123'
-      #---------------------------Discovery Methods------------------------------------------
+      # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
       ludus_sccm_enable_active_directory_boundary_creation: true
       ludus_sccm_enable_subnet_boundary_creation: true
       ludus_sccm_enable_active_directory_group_discovery: true
       ludus_sccm_enable_active_directory_system_discovery: true
       ludus_sccm_enable_active_directory_user_discovery: true
-      #-----------------------------ludus_sccm_pushover-------------------------------------------------
-      ludus_sccm_pushover: false            # Default = false
-      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = ''
+      # -----------------------------ludus_sccm_pushover-------------------------------------------------
+      ludus_sccm_pushover: false                     # Default = false
+      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = 'Lab Setup Complete'
       ludus_sccm_pushover_app_token: ''              # Default = ''
       ludus_sccm_pushover_user_key: ''               # Default = ''
 
@@ -197,7 +199,7 @@ ludus ansible collection add http://<network ip>/synzack-ludus_sccm-1.0.0.tar.gz
 via scp
 ```
 export LUDUS_USER_NANE=$(ludus user list --json | jq -r '.[].proxmoxUsername')
-ssh root@<ludus-host> "mkdir /opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack"
+ssh root@<ludus-host> "mkdir -r /opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm"
 scp -r ./ root@<ludus-host>:/opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm/
 ```
 

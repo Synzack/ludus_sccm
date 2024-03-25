@@ -33,4 +33,4 @@ jobs:
         run: pip3 install ansible-core
 
       - name: Release to Ansible Galaxy.
-        run: cd sccm && ansible-playbook -i 'localhost,' galaxy-deploy.yml -e "github_tag=${{ github.ref }}"
+        run: ansible-playbook -i 'localhost,' galaxy-deploy.yml -e "github_tag=${{ github.ref }}"

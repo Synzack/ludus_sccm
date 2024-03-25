@@ -96,8 +96,8 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_siteserver
     role_vars:
-      ludus_sccm_sitecode: 123                         # Default = 123
-      ludus_sccm_sitename: Primary Site                # Default = Primary Site
+      ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
+      ludus_sccm_sitename: Primary Site  # Default = Primary Site
       ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv'  # Default = 'sccm-sitesrv'
       ludus_sccm_distro_server_hostname: '{{ range_id }}-sccm-distro' # Default = 'sccm-distro'
       ludus_sccm_mgmt_server_hostname: '{{ range_id }}-sccm-mgmt'     # Default = 'sccm-mgmt'
@@ -132,7 +132,7 @@ ludus:
       ludus_sccm_enable_active_directory_system_discovery: true
       ludus_sccm_enable_active_directory_user_discovery: true
       # -----------------------------ludus_sccm_pushover-------------------------------------------------
-      ludus_sccm_pushover: false            # Default = false
-      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = ''
+      ludus_sccm_pushover: false                     # Default = false
+      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = 'Lab Setup Complete'
       ludus_sccm_pushover_app_token: ''              # Default = ''
       ludus_sccm_pushover_user_key: ''               # Default = ''
