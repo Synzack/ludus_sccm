@@ -9,15 +9,15 @@
   community.windows.win_firewall:
     state: disabled
     profiles:
-    - Domain
-    - Public
-    - Private
+      - Domain
+      - Public
+      - Private
 
 - name: Install .NET Windows Features
   ansible.windows.win_feature:
     name:
-      - NET-Framework-Core 
-      - NET-Framework-45-Core 
+      - NET-Framework-Core
+      - NET-Framework-45-Core
       - RSAT
       - Web-WebServer
       - Web-Mgmt-Console
@@ -32,7 +32,7 @@
       - '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_site_server_hostname }}$'
     state: present
 
-#Start SQL Server Install-------------------------------------------------------------------
+# Start SQL Server Install-------------------------------------------------------------------
 - name: Begin SQL Server Install
   ansible.builtin.include_tasks:
     file: config_sql.yml
