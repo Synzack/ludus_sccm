@@ -1,0 +1,62 @@
+---
+ludus_sccm_sitecode: 123
+ludus_sccm_sitename: Primary Site
+
+ludus_sccm_site_server_hostname: 'sccm-sitesrv'
+ludus_sccm_distro_server_hostname: 'sccm-distro'
+ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'
+ludus_sccm_sql_server_hostname: 'sccm-sql'
+
+#--------------------------Network Access Account--------------------------------
+ludus_sccm_configure_nna: false
+ludus_sccm_nna_username: ''
+ludus_sccm_nna_password: ''
+#--------------------------Client Push Account-----------------------------------------
+ludus_sccm_configure_client_push: true
+ludus_sccm_client_push_username: 'sccm_push'
+ludus_sccm_client_push_password: 'password'
+ludus_sccm_enable_automatic_client_push_installation: true
+ludus_sccm_enable_system_type_configuration_manager: true
+ludus_sccm_enable_system_type_server: true
+ludus_sccm_enable_system_type_workstation: true
+ludus_sccm_install_client_to_domain_controller: false
+ludus_sccm_allow_NTLM_fallback: true
+#--------------------------Task Sequence Account---------------------------------------
+ludus_sccm_configure_task_sequence: true
+ludus_sccm_task_sequence_username: 'sccm_push'
+ludus_sccm_task_sequence_password: 'password'
+#--------------------------Task Sequence - Domain Join Account-------------------------
+ludus_sccm_configure_domain_join: true
+ludus_sccm_domain_join_username: 'sccm_push'
+ludus_sccm_domain_join_password: 'password'
+#---------------------------Discovery Methods------------------------------------------
+ludus_sccm_enable_active_directory_forest_discovery: true
+ludus_sccm_enable_active_directory_boundary_creation: true
+ludus_sccm_enable_subnet_boundary_creation: true
+ludus_sccm_enable_active_directory_group_discovery: true
+ludus_sccm_enable_active_directory_system_discovery: true
+ludus_sccm_enable_active_directory_user_discovery: true
+
+#---------------------------ludus_sccm_pushover----------------------------------
+ludus_sccm_pushover: false
+ludus_sccm_pushover_msg: ''
+ludus_sccm_pushover_app_token: ''
+ludus_sccm_pushover_user_key: ''
+
+#---------------------------Do Not Change Below----------------------------------
+ludus_sccm_system_management_template: SystemManagement.ps1.j2
+
+ludus_sccm_win_sccm_config_default_template: ConfigMgrSetup.ini.j2
+ludus_sccm_win_sccm_config_default_prereq_path: C:\SCCM 
+
+ludus_sccm_configmgr_url: https://go.microsoft.com/fwlink/p/?LinkID=2195628&clcid=0x409&culture=en-us&country=us
+
+ludus_sccm_adksetup_url: https://download.microsoft.com/download/0/1/C/01CC78AA-B53B-4884-B7EA-74F2878AA79F/adk/adksetup.exe
+ludus_sccm_adksetup_arguments: /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool
+ludus_sccm_adksetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\User State Migration Tool\\amd64\\wdscore.dll"
+
+ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/D/7/E/D7E22261-D0B3-4ED6-8151-5E002C7F823D/adkwinpeaddons/adkwinpesetup.exe
+ludus_sccm_adkwinpesetup_arguments: /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment
+ludus_sccm_adkwinpesetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\Windows Preinstallation Environment\\copype.cmd"
+
+

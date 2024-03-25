@@ -1,0 +1,25 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: sccm_mgmt
+  author: Zach Stein
+  description: Add a SCCM MGMT Server
+  company: SpecterOps
+  license: GPLv3
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Windows
+      versions:
+        - "2012R2"
+        - "2016"
+        - "2019"
+        - "2022"
+
+  galaxy_tags:
+    - windows
+    - security
+    - sccm
+    - activedirectory
+    - server
+    - ludus

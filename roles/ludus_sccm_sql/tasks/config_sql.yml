@@ -1,0 +1,50 @@
+---
+- name: Check if the SQL Installation Files Exist
+  ansible.windows.win_stat:
+    path: "C:\\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso"
+  register: file_stat
+
+- name: Download SQL Server 2022
+  ansible.windows.win_get_url:
+    url: "{{ ludus_sccm_sql2022_url }}"
+    dest: C:\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
+  when: not file_stat.stat.exists
+
+- name: Mount SQL ISO
+  community.windows.win_disk_image:
+    image_path: C:\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
+    state: present
+  register: disk_image_out
+
+- name: Create SQL Service Account
+  microsoft.ad.user:
+    name: '{{ ludus_sccm_sql_svc_account_username }}'
+    password: '{{ ludus_sccm_sql_svc_account_password }}'
+    state: present
+    spn:
+      set:
+        - 'MSSQLSvc/{{ ludus_sccm_sql_server_hostname }}:1433'
+        - 'MSSQLSvc/{{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}:1433'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Setup SQL Server
+  ansible.windows.win_shell: |
+    {{ disk_image_out.mount_paths[0] }}setup.exe /Q /IAcceptSQLServerLicenseTerms /ACTION="install" /FEATURES=SQL /INSTANCENAME=MSSQLSERVER /SQLSYSADMINACCOUNTS={{ ludus_sccm_sql_sysadmin_accounts }} /SQLSVCACCOUNT='{{ ludus_domain_netbios_name }}\{{ ludus_sccm_sql_svc_account_username }}' /SQLSVCPASSWORD="{{ ludus_sccm_sql_svc_account_password }}" /SQLMINMEMORY="1024" /SQLMAXMEMORY="16384"
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  args:
+    creates: "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\Binn\\sqlservr.exe"
+
+- name: Unmount ISO
+  community.windows.win_disk_image:
+    image_path: C:\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
+    state: absent

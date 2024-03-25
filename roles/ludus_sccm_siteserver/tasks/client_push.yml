@@ -1,0 +1,127 @@
+---
+# Configure Push Account----------------------------------------------------------------
+- name: Create SCCM Push Account Domain Group
+  microsoft.ad.group:
+    name: sccm_push_accounts
+    members:
+      add:
+        - '{{ ludus_sccm_client_push_username }}'
+    scope: global
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Configure SCCM Client Push Installations
+  autolabs.sccm.clientpush:
+    name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_client_push_username }}'
+    site_code: '{{ ludus_sccm_sitecode }}'
+    ludus_sccm_enable_automatic_client_push_installation: '{{ ludus_sccm_enable_automatic_client_push_installation }}'
+    ludus_sccm_enable_system_type_configuration_manager: '{{ ludus_sccm_enable_system_type_configuration_manager }}'
+    ludus_sccm_enable_system_type_server: '{{ ludus_sccm_enable_system_type_server }}'
+    ludus_sccm_enable_system_type_workstation: '{{ ludus_sccm_enable_system_type_workstation }}'
+    ludus_sccm_install_client_to_domain_controller: '{{ ludus_sccm_install_client_to_domain_controller }}'
+    ludus_sccm_allow_NTLM_fallback: '{{ ludus_sccm_allow_NTLM_fallback }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Copy Push GPO Zip
+  ansible.windows.win_copy:
+    src: '{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+    dest: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+
+- name: Unzip Push GPO
+  community.windows.win_unzip:
+    src: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+    dest: C:\
+    creates: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}'
+
+
+- name: Template Push Installation GPO Migration Table
+  ansible.windows.win_template:
+    src: "sccm_push.migtable.j2"
+    dest: C:\sccm_push.migtable
+
+- name: Check if Group Policy Object exists
+  ansible.windows.win_shell: Get-GPO -Name "SCCM Push Account Local Admin"
+  register: gpo_check
+  ignore_errors: true
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Create New Group Policy for Push Installation
+  ansible.windows.win_shell: |
+    New-GPO -Name "SCCM Push Account Local Admin" -Comment "Local Admin for SCCM Push Accounts"
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: gpo_check.rc != 0
+
+- name: Import Local Administrator Push Group Policy
+  ansible.windows.win_shell: |
+    Import-GPO -BackupGPOName "SCCM Push Account Local Admin" -TargetName "SCCM Push Account Local Admin" -path C:\ -MigrationTable C:\sccm_push.migtable
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: gpo_check.rc != 0
+
+- name: Link Push GPO to Servers
+  ansible.windows.win_shell: |
+    New-GPLink -name "SCCM Push Account Local Admin" -Target "OU=Servers,DC=ludus,DC=domain" -Enforced Yes
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: ludus_sccm_enable_system_type_server and gpo_check.rc != 0
+
+- name: Link Push GPO to Workstations
+  ansible.windows.win_shell: |
+    New-GPLink -name "SCCM Push Account Local Admin" -Target "OU=Workstations,DC=ludus,DC=domain" -Enforced Yes
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: ludus_sccm_enable_system_type_workstation and gpo_check.rc != 0
+
+- name: Link Push GPO to Domain Controllers
+  ansible.windows.win_shell: |
+    New-GPLink -name "SCCM Push Account Local Admin" -Target "OU=Workstations,DC=ludus,DC=domain" -Enforced Yes
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: ludus_sccm_install_client_to_domain_controller and gpo_check.rc != 0
+
+- name: Force gpupdate on OUs
+  autolabs.sccm.force_gpupdate:
+    workstations: '{{ ludus_sccm_enable_system_type_workstation }}'
+    servers: '{{ ludus_sccm_enable_system_type_server }}'
+    domain_controllers: '{{ ludus_sccm_install_client_to_domain_controller }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

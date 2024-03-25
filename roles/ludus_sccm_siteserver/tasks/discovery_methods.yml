@@ -1,0 +1,16 @@
+---
+- name: Configure SCCM Discovery Methods
+  autolabs.sccm.discovery_methods:
+    site_code: '{{ ludus_sccm_sitecode }}'
+    ludus_sccm_enable_active_directory_forest_discovery: '{{ ludus_sccm_enable_active_directory_forest_discovery }}'
+    ludus_sccm_enable_active_directory_boundary_creation: '{{ ludus_sccm_enable_active_directory_boundary_creation }}'
+    ludus_sccm_enable_subnet_boundary_creation: '{{ ludus_sccm_enable_subnet_boundary_creation }}'
+    ludus_sccm_enable_active_directory_group_discovery: '{{ ludus_sccm_enable_active_directory_group_discovery }}'
+    ludus_sccm_enable_active_directory_system_discovery: '{{ ludus_sccm_enable_active_directory_system_discovery }}'
+    ludus_sccm_enable_active_directory_user_discovery: '{{ ludus_sccm_enable_active_directory_user_discovery }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

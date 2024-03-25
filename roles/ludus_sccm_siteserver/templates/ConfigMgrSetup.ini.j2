@@ -1,0 +1,37 @@
+[Identification]
+Action=InstallPrimarySite
+
+[Options]
+ProductID=EVAL
+ludus_sccm_sitecode={{ ludus_sccm_sitecode }}
+SiteName={{ ludus_sccm_sitename }}
+SMSInstallDir=C:\Program Files\Microsoft Configuration Manager
+SDKServer='{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
+RoleCommunicationProtocol=HTTPorHTTPS
+ClientsUsePKICertificate=0
+PrerequisiteComp=0
+PrerequisitePath={{ ludus_sccm_win_sccm_config_default_prereq_path }}
+ManagementPoint='{{ ludus_sccm_mgmt_server_hostname }}.{{ ludus_domain_fqdn }}'
+ManagementPointProtocol=HTTP
+DistributionPoint='{{ ludus_sccm_distro_server_hostname }}.{{ ludus_domain_fqdn }}'
+DistributionPointProtocol=HTTP
+DistributionPointInstallIIS=0
+AdminConsole=1
+JoinCEIP=0
+
+[SQLConfigOptions]
+SQLServerName='{{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}'
+DatabaseName=CM_{{ ludus_sccm_sitecode}}
+SQLSSBPort=4022
+
+[CloudConnectorOptions]
+CloudConnector=0
+CloudConnectorServer='{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
+UseProxy=0
+ProxyName=
+ProxyPort=
+
+[SystemCenterOptions]
+SysCenterId=Ody/PiupYBbsAfToBRh5UUCM2B9+bceqZ/5zAkeNe6s=
+
+[HierarchyExpansionOption]

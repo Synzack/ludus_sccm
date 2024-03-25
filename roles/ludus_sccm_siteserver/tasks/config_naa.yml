@@ -1,0 +1,11 @@
+---
+- name: Configure Network Access Accounts
+  autolabs.sccm.naa:
+    name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_nna_username }}'
+    site_code: '{{ ludus_sccm_sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

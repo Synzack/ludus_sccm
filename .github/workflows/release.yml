@@ -1,0 +1,36 @@
+---
+name: Release
+'on':
+  push:
+    tags:
+      - '*'
+
+defaults:
+  run:
+    working-directory: ansible_collections/synzack/autolab
+
+jobs:
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    env:
+      ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
+      ANSIBLE_FORCE_COLOR: 1
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+        with:
+          path: ansible_collections/synzack/autolab
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible.
+        run: pip3 install ansible-core
+
+      - name: Release to Ansible Galaxy.
+        run: cd sccm && ansible-playbook -i 'localhost,' galaxy-deploy.yml -e "github_tag=${{ github.ref }}"

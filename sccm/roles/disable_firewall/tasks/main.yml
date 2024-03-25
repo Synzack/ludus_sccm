@@ -1,8 +1,0 @@
----
-- name: Disable Domain firewall
-  community.windows.win_firewall:
-    state: disabled
-    profiles:
-    - Domain
-    - Public
-    - Private

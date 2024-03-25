@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-16"?>
+<MigrationTable xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.microsoft.com/GroupPolicy/GPOOperations/MigrationTable">
+  <Mapping>
+    <Type>Unknown</Type>
+    <Source>Administrators</Source>
+    <DestinationSameAsSource />
+  </Mapping>
+  <Mapping>
+    <Type>GlobalGroup</Type>
+    <Source>sccm_push_accounts@{{ ludus_domain_fqdn }}</Source>
+    <Destination>sccm_push_accounts@{{ ludus_domain_fqdn }}</Destination>
+  </Mapping>
+</MigrationTable>

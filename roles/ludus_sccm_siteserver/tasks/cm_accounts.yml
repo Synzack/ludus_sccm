@@ -1,0 +1,63 @@
+---
+- name: Create Domain Users Needed for SCCM
+  microsoft.ad.user:
+    name: '{{ user_creation.name }}'
+    password: '{{ user_creation.password }}'
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  loop:
+    - { configure_bool: '{{ ludus_sccm_configure_nna }}',
+        name: '{{ ludus_sccm_nna_username }}',
+        password: '{{ ludus_sccm_nna_password }}'
+    }
+    - { configure_bool: '{{ ludus_sccm_configure_client_push }}',
+        name: '{{ ludus_sccm_client_push_username }}',
+        password: '{{ ludus_sccm_client_push_password }}'
+    }
+    - { configure_bool: '{{ ludus_sccm_configure_task_sequence }}',
+        name: '{{ ludus_sccm_task_sequence_username }}',
+        password: '{{ ludus_sccm_task_sequence_password }}'}
+    - { configure_bool: '{{ ludus_sccm_configure_domain_join }}',
+        name: '{{ ludus_sccm_domain_join_username }}',
+        password: '{{ ludus_sccm_domain_join_password }}'
+    }
+  loop_control:
+    loop_var: user_creation
+  when: user_creation.configure_bool
+
+- name: Create CM Accounts for Each Domain User
+  autolabs.sccm.cmaccounts:
+    name: '{{ cm_creation.name }}'
+    password: '{{ cm_creation.password }}'
+    site_code: '{{ ludus_sccm_sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  loop:
+    - { configure_bool: '{{ ludus_sccm_configure_nna }}',
+        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_nna_username }}',
+        password: '{{ ludus_sccm_nna_password }}'
+    }
+    - { configure_bool: '{{ ludus_sccm_configure_client_push }}',
+        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_client_push_username }}',
+        password: '{{ ludus_sccm_client_push_password }}'
+    }
+    - { configure_bool: '{{ ludus_sccm_configure_task_sequence }}',
+        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_task_sequence_username }}',
+        password: '{{ ludus_sccm_task_sequence_password }}'
+    }
+    - { configure_bool: '{{ ludus_sccm_configure_domain_join }}',
+        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_domain_join_username }}',
+        password: '{{ ludus_sccm_domain_join_password }}'
+    }
+  loop_control:
+    loop_var: cm_creation
+  when: cm_creation.configure_bool
