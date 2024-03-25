@@ -7,7 +7,8 @@
   </Mapping>
   <Mapping>
     <Type>GlobalGroup</Type>
-    <Source>sccm_push_accounts@{{ ludus_domain_fqdn }}</Source>
+    <!--Don't change this ludus.domain as it is required to modify the saved GPO -->
+    <Source>sccm_push_accounts@ludus.domain</Source>
     <Destination>sccm_push_accounts@{{ ludus_domain_fqdn }}</Destination>
   </Mapping>
 </MigrationTable>
