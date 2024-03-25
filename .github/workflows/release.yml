@@ -7,7 +7,7 @@ name: Release
 
 defaults:
   run:
-    working-directory: ansible_collections/synzack/autolab
+    working-directory: ansible_collections/synzack/ludus_sccm
 
 jobs:
 
@@ -22,7 +22,7 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v2
         with:
-          path: ansible_collections/synzack/autolab
+          path: ansible_collections/synzack/ludus_sccm
 
       - name: Set up Python 3.
         uses: actions/setup-python@v2

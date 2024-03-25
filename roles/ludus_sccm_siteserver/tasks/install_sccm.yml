@@ -101,6 +101,31 @@
   args:
     creates: "C:\\Program Files\\Microsoft Configuration Manager\\bin\\x64\\ccm.dll"
 
+- name: Check for success
+  ansible.windows.win_stat:
+    path: "C:\\Program Files\\Microsoft Configuration Manager\\bin\\x64\\ccm.dll"
+  register: ccm_dll
+
+- name: Get SCCM error log
+  ansible.builtin.slurp:
+    src: "C:\\ConfigMgrSetup.log"
+  register: configmgrsetup_log
+  when: not ccm_dll.stat.exists
+
+- name: Reboot after SCCM error (allows for Setup to run again)
+  ansible.windows.win_reboot:
+  when: not ccm_dll.stat.exists
+
+- name: Show ConfigMgrSetup.log
+  ansible.builtin.debug:
+    msg: "{{ configmgrsetup_log['content'] | b64decode }}"
+  when: not ccm_dll.stat.exists
+
+- name: Fail ansible on failed install
+  ansible.builtin.fail:
+    msg: "SCCM failed to install. Check the log output above for details."
+  when: not ccm_dll.stat.exists
+
 - name: Reboot after SCCM site installation
   ansible.windows.win_reboot:
-  when: setup_configmgr.changed
+  when: setup_configmgr.changed and ccm_dll.stat.exists
