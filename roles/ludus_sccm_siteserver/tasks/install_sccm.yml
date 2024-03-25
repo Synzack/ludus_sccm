@@ -48,7 +48,7 @@
 - name: Unzip Setup
   ansible.windows.win_command: 'C:\ludus\sccm\MCM_Configmgr_2303.exe /s -dC:\ludus\sccm'
   args:
-    creates: C:\cd.retail.LN
+    creates: C:\ludus\sccm\cd.retail.LN
   vars:
     ansible_become: true
     ansible_become_method: runas
