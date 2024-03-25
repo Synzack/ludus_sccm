@@ -15,7 +15,7 @@
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
 - name: Configure SCCM Client Push Installations
-  autolabs.sccm.clientpush:
+  synzack.ludus_sccm.clientpush:
     name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_client_push_username }}'
     site_code: '{{ ludus_sccm_sitecode }}'
     ludus_sccm_enable_automatic_client_push_installation: '{{ ludus_sccm_enable_automatic_client_push_installation }}'
@@ -115,7 +115,7 @@
   when: ludus_sccm_install_client_to_domain_controller and gpo_check.rc != 0
 
 - name: Force gpupdate on OUs
-  autolabs.sccm.force_gpupdate:
+  synzack.ludus_sccm.force_gpupdate:
     workstations: '{{ ludus_sccm_enable_system_type_workstation }}'
     servers: '{{ ludus_sccm_enable_system_type_server }}'
     domain_controllers: '{{ ludus_sccm_install_client_to_domain_controller }}'

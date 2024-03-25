@@ -31,7 +31,7 @@
   when: user_creation.configure_bool
 
 - name: Create CM Accounts for Each Domain User
-  autolabs.sccm.cmaccounts:
+  synzack.ludus_sccm.cmaccounts:
     name: '{{ cm_creation.name }}'
     password: '{{ cm_creation.password }}'
     site_code: '{{ ludus_sccm_sitecode }}'

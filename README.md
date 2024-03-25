@@ -181,7 +181,7 @@ ludus range config set -f sccm-range-config.yml
 ludus range deploy
 ```
 
-## Building the Collection
+## Building the Collection from Source
 
 ```
 git clone https://github.com/Synzack/Ludus-Autolabs

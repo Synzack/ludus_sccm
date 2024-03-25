@@ -1,6 +1,6 @@
 ---
 - name: Configure Network Access Accounts
-  autolabs.sccm.naa:
+  synzack.ludus_sccm.naa:
     name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_nna_username }}'
     site_code: '{{ ludus_sccm_sitecode }}'
   vars:
