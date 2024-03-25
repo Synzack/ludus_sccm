@@ -34,19 +34,23 @@
 - name: Copy Push GPO Zip
   ansible.windows.win_copy:
     src: '{E38F225F-B020-4077-80ED-5195C3629651}.zip'
-    dest: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+    dest: 'C:\ludus\sccm\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+
+- name: Create host directory if it doesn't exist
+  ansible.windows.win_file:
+    path: C:\ludus\sccm\GPO
+    state: directory
 
 - name: Unzip Push GPO
   community.windows.win_unzip:
-    src: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
-    dest: C:\
-    creates: 'C:\{E38F225F-B020-4077-80ED-5195C3629651}'
-
+    src: 'C:\ludus\sccm\{E38F225F-B020-4077-80ED-5195C3629651}.zip'
+    dest: C:\ludus\sccm\GPO
+    creates: 'C:\ludus\sccm\{E38F225F-B020-4077-80ED-5195C3629651}'
 
 - name: Template Push Installation GPO Migration Table
   ansible.windows.win_template:
     src: "sccm_push.migtable.j2"
-    dest: C:\sccm_push.migtable
+    dest: C:\ludus\sccm\sccm_push.migtable
 
 - name: Check if Group Policy Object exists
   ansible.windows.win_shell: Get-GPO -Name "SCCM Push Account Local Admin"
@@ -72,7 +76,7 @@
 
 - name: Import Local Administrator Push Group Policy
   ansible.windows.win_shell: |
-    Import-GPO -BackupGPOName "SCCM Push Account Local Admin" -TargetName "SCCM Push Account Local Admin" -path C:\ -MigrationTable C:\sccm_push.migtable
+    Import-GPO -BackupGPOName "SCCM Push Account Local Admin" -TargetName "SCCM Push Account Local Admin" -path C:\ludus\sccm\GPO -MigrationTable C:\ludus\sccm\sccm_push.migtable
   vars:
     ansible_become: true
     ansible_become_method: runas

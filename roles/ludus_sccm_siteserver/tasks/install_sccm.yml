@@ -1,16 +1,22 @@
 ---
-- name: Download adksetup.exe
-  ansible.windows.win_get_url:
-    url: "{{ ludus_sccm_adksetup_url }}"
-    dest: C:\adksetup.exe
+- name: Get adksetup.exe
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_sccm_file_name: adksetup.exe
+    ludus_sccm_url: "{{ ludus_sccm_adksetup_url }}"
+    ludus_sccm_host_path: "C:\\ludus\\sccm"
 
-- name: Download adkwinpesetup.exe
-  ansible.windows.win_get_url:
-    url: "{{ ludus_sccm_adkwinpesetup_url }}"
-    dest: C:\adkwinpesetup.exe
+- name: Get adkwinpesetup.exe
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_sccm_file_name: adkwinpesetup.exe
+    ludus_sccm_url: "{{ ludus_sccm_adkwinpesetup_url }}"
+    ludus_sccm_host_path: "C:\\ludus\\sccm"
 
 - name: Install adksetup.exe
-  ansible.windows.win_command: 'C:\adksetup.exe /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool'
+  ansible.windows.win_command: 'C:\ludus\sccm\adksetup.exe /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool'
   args:
     creates: "{{ ludus_sccm_adksetup_creates_path }}"
   vars:
@@ -21,7 +27,7 @@
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
 - name: Install adkwinpesetup
-  ansible.windows.win_command: 'C:\adkwinpesetup.exe /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment'
+  ansible.windows.win_command: 'C:\ludus\sccm\adkwinpesetup.exe /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment'
   args:
     creates: "{{ ludus_sccm_adkwinpesetup_creates_path }}"
   vars:
@@ -31,19 +37,16 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
-- name: Check if the Configmgr_2023 file exists
-  ansible.windows.win_stat:
-    path: "C:\\MCM_Configmgr_2303.exe"
-  register: file_stat
-
-- name: Download Configmgr_2023
-  ansible.windows.win_get_url:
-    url: "{{ ludus_sccm_configmgr_url }}"
-    dest: C:\MCM_Configmgr_2303.exe
-  when: not file_stat.stat.exists
+- name: Get Configmgr_2023
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_sccm_file_name: MCM_Configmgr_2303.exe
+    ludus_sccm_url: "{{ ludus_sccm_configmgr_url }}"
+    ludus_sccm_host_path: "C:\\ludus\\sccm"
 
 - name: Unzip Setup
-  ansible.windows.win_command: 'C:\MCM_Configmgr_2303.exe /s -dC:\'
+  ansible.windows.win_command: 'C:\ludus\sccm\MCM_Configmgr_2303.exe /s -dC:\ludus\sccm'
   args:
     creates: C:\cd.retail.LN
   vars:
@@ -56,12 +59,12 @@
 - name: Template ConfigMgrSetup.ini
   ansible.windows.win_template:
     src: "{{ ludus_sccm_win_sccm_config_default_template }}"
-    dest: C:\ConfigMgrSetup.ini
+    dest: "C:\\ludus\\sccm\\ConfigMgrSetup.ini"
 
 - name: Template SystemManagement.ps1
   ansible.windows.win_template:
     src: "{{ ludus_sccm_system_management_template }}"
-    dest: C:\SystemManagement.ps1
+    dest: "C:\\ludus\\sccm\\SystemManagement.ps1"
 
 - name: Create SCCM pre-req folder
   ansible.windows.win_file:
@@ -70,7 +73,7 @@
 
 - name: Create System Management Container and Configure Permissions
   ansible.windows.win_shell: |
-   C:\SystemManagement.ps1
+   C:\ludus\sccm\SystemManagement.ps1
   vars:
     ansible_become: true
     ansible_become_method: runas
@@ -80,7 +83,7 @@
 
 - name: Extend Schema
   ansible.windows.win_shell: |
-   C:\cd.retail.LN\SMSSETUP\BIN\X64\extadsch.exe
+   C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64\extadsch.exe
   vars:
     ansible_become: true
     ansible_become_method: runas
@@ -90,7 +93,7 @@
 
 - name: Setup SCCM
   ansible.windows.win_shell: |
-   C:\cd.retail.LN\SMSSETUP\BIN\X64\setup.exe /script C:\ConfigMgrSetup.ini
+   C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64\setup.exe /script C:\ludus\sccm\ConfigMgrSetup.ini
   register: setup_configmgr
   vars:
     ansible_become: true
@@ -108,7 +111,7 @@
 
 - name: Get SCCM error log
   ansible.builtin.slurp:
-    src: "C:\\ConfigMgrSetup.log"
+    src: "C:\\ludus\\sccm\\ConfigMgrSetup.log"
   register: configmgrsetup_log
   when: not ccm_dll.stat.exists
 

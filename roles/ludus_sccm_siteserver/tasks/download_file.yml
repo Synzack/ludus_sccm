@@ -1,0 +1,40 @@
+- name: Get file if needed
+  run_once: true
+  block:
+    - name: Create /opt/ludus/resources/sccm directory if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ ludus_install_directory }}/resources/sccm"
+        state: directory
+        recurse: true
+      delegate_to: localhost
+
+    - name: Check if file exists
+      ansible.builtin.stat:
+        path: "{{ ludus_install_directory }}/resources/sccm/{{ ludus_sccm_file_name }}"
+      delegate_to: localhost
+      register: file_check
+
+    - name: Downloading file to Ludus host
+      ansible.builtin.get_url:
+        url: "{{ ludus_sccm_url }}"
+        dest: "{{ ludus_install_directory }}/resources/sccm/{{ ludus_sccm_file_name }}"
+        checksum: "{{ ludus_sccm_checksum | default(omit) }}"
+        mode: "660"
+      delegate_to: localhost
+      when: not file_check.stat.exists
+
+- name: Create directory on VM if it doesn't exist
+  ansible.windows.win_file:
+    path: "{{ ludus_sccm_host_path }}"
+    state: directory
+
+- name: Check if file exists on VM
+  ansible.windows.win_stat:
+    path: "{{ ludus_sccm_host_path }}\\{{ ludus_sccm_file_name }}"
+  register: file_host_check
+
+- name: Copy file to windows VM
+  ansible.windows.win_copy:
+    src: "{{ ludus_install_directory }}/resources/sccm/{{ ludus_sccm_file_name }}"
+    dest: "{{ ludus_sccm_host_path }}\\{{ ludus_sccm_file_name }}"
+  when: not file_host_check.stat.exists

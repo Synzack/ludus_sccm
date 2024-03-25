@@ -1,4 +1,6 @@
 ---
+ludus_install_directory: /opt/ludus
+
 ludus_sccm_sitecode: 123
 ludus_sccm_sitename: Primary Site
 
