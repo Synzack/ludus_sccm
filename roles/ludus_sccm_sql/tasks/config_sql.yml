@@ -1,18 +1,15 @@
 ---
-- name: Check if the SQL Installation Files Exist
-  ansible.windows.win_stat:
-    path: "C:\\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso"
-  register: file_stat
-
 - name: Download SQL Server 2022
-  ansible.windows.win_get_url:
-    url: "{{ ludus_sccm_sql2022_url }}"
-    dest: C:\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
-  when: not file_stat.stat.exists
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_sccm_file_name: enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
+    ludus_sccm_url: "{{ ludus_sccm_sql2022_url }}"
+    ludus_sccm_host_path: "C:\\ludus\\sccm"
 
 - name: Mount SQL ISO
   community.windows.win_disk_image:
-    image_path: C:\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
+    image_path: C:\ludus\sccm\enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
     state: present
   register: disk_image_out
 
