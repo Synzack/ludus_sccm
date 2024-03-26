@@ -29,14 +29,18 @@ if ((Get-PSDrive -Name $module.Params.site_code -PSProvider CMSite -ErrorAction 
 }
 
 Set-Location "$($module.Params.site_code):\"
+$enabled_ActiveDirectoryForestDiscovery = Get-CMDiscoveryMethod -Name "ActiveDirectoryForestDiscovery" | Where-Object {$_.Flag -eq 6}
+$enabled_ActiveDirectoryGroupDiscovery = Get-CMDiscoveryMethod -Name "ActiveDirectoryGroupDiscovery" | Where-Object {$_.Flag -eq 6}
+$enabled_ActiveDirectorySystemDiscovery = Get-CMDiscoveryMethod -Name "ActiveDirectorySystemDiscovery" | Where-Object {$_.Flag -eq 6}
+$enabled_ActiveDirectoryUserDiscovery = Get-CMDiscoveryMethod -Name "ActiveDirectoryUserDiscovery" | Where-Object {$_.Flag -eq 6}
 
-if($module.Params.ludus_sccm_enable_active_directory_forest_discovery){
+if($module.Params.ludus_sccm_enable_active_directory_forest_discovery -and (-not $enabled_ActiveDirectoryForestDiscovery)){
     Set-CMDiscoveryMethod -ActiveDirectoryForestDiscovery -SiteCode $module.Params.site_code -Enabled $True -EnableActiveDirectorySiteBoundaryCreation $module.Params.ludus_sccm_enable_active_directory_boundary_creation -EnableSubnetBoundaryCreation $module.Params.ludus_sccm_enable_subnet_boundary_creation
 
     Invoke-CMForestDiscovery -SiteCode $module.Params.site_code
 }
 
-if($module.Params.ludus_sccm_enable_active_directory_group_discovery){
+if($module.Params.ludus_sccm_enable_active_directory_group_discovery -and (-not $enabled_ActiveDirectoryGroupDiscovery)){
     $GroupDiscoveryScope = New-CMADGroupDiscoveryScope -Name "Domain Groups" -LdapLocation $container -RecursiveSearch $True
 
     Set-CMDiscoveryMethod -ActiveDirectoryGroupDiscovery -SiteCode $module.Params.site_code -Enabled $True -AddGroupDiscoveryScope $GroupDiscoveryScope
@@ -44,13 +48,13 @@ if($module.Params.ludus_sccm_enable_active_directory_group_discovery){
     Invoke-CMGroupDiscovery -SiteCode $module.Params.site_code
 }
 
-if($module.Params.ludus_sccm_enable_active_directory_system_discovery){
+if($module.Params.ludus_sccm_enable_active_directory_system_discovery -and (-not $enabled_ActiveDirectorySystemDiscovery)){
     Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $module.Params.site_code -Enabled $True -AddActiveDirectoryContainer $container
 
     Invoke-CMSystemDiscovery -SiteCode $module.Params.site_code
 }
 
-if($module.Params.ludus_sccm_enable_active_directory_user_discovery){
+if($module.Params.ludus_sccm_enable_active_directory_user_discovery -and (-not $enabled_ActiveDirectoryUserDiscovery)){
     Set-CMDiscoveryMethod -ActiveDirectoryUserDiscovery -SiteCode $module.Params.site_code -Enabled $True -AddActiveDirectoryContainer $container
 
     Invoke-CMUserDiscovery -SiteCode $module.Params.site_code
