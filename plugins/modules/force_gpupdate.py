@@ -30,7 +30,7 @@ author:
 
 EXAMPLES = r'''
 - name: Force gpupdate on OUs
-  autolabs.sccm.force_gpupdate:
+  synzack.ludus_sccm.force_gpupdate:
     workstations: true
     servers: true
     domain_controllers: false

@@ -29,7 +29,7 @@ author:
 
 EXAMPLES = r'''
 - name: Configure CM Accounts
-  autolabs.sccm.cmaccounts:
+  synzack.ludus_sccm.cmaccounts:
     name: 'domain\username'
     password: 'password'
     site_code: '123'

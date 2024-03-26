@@ -54,7 +54,7 @@ author:
 
 EXAMPLES = r'''
 - name: Configure SCCM Client Push Installations
-  autolabs.sccm.clientpush:
+  synzack.ludus_sccm.clientpush:
     name: 'username'
     password: 'password'
     site_code: '123'

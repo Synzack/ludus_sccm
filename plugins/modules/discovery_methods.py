@@ -59,7 +59,7 @@ author:
 
 EXAMPLES = r'''
 - name: Configure SCCM Discovery Methods
-  autolabs.sccm.discovery_methods:
+  synzack.ludus_sccm.discovery_methods:
     site_code: "123"
     ludus_sccm_enable_active_directory_forest_discovery: true
     ludus_sccm_enable_active_directory_boundary_creation: true

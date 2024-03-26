@@ -24,7 +24,7 @@ author:
 
 EXAMPLES = r'''
 - name: Configure Network Access Accounts
-  autolabs.sccm.naa:
+  synzack.ludus_sccm.naa:
     name: 'username'
     password: 'password'
     site_code: '123'
