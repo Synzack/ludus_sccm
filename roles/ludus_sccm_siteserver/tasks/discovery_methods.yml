@@ -2,12 +2,12 @@
 - name: Configure SCCM Discovery Methods
   synzack.ludus_sccm.discovery_methods:
     site_code: '{{ ludus_sccm_sitecode }}'
-    ludus_sccm_enable_active_directory_forest_discovery: '{{ ludus_sccm_enable_active_directory_forest_discovery }}'
-    ludus_sccm_enable_active_directory_boundary_creation: '{{ ludus_sccm_enable_active_directory_boundary_creation }}'
-    ludus_sccm_enable_subnet_boundary_creation: '{{ ludus_sccm_enable_subnet_boundary_creation }}'
-    ludus_sccm_enable_active_directory_group_discovery: '{{ ludus_sccm_enable_active_directory_group_discovery }}'
-    ludus_sccm_enable_active_directory_system_discovery: '{{ ludus_sccm_enable_active_directory_system_discovery }}'
-    ludus_sccm_enable_active_directory_user_discovery: '{{ ludus_sccm_enable_active_directory_user_discovery }}'
+    enable_forest_discovery: '{{ ludus_sccm_enable_active_directory_forest_discovery }}'
+    enable_ad_boundary_creation: '{{ ludus_sccm_enable_active_directory_boundary_creation }}'
+    enable_subnet_boundary_creation: '{{ ludus_sccm_enable_subnet_boundary_creation }}'
+    enable_active_directory_group_discovery: '{{ ludus_sccm_enable_active_directory_group_discovery }}'
+    enable_active_directory_system_discovery: '{{ ludus_sccm_enable_active_directory_system_discovery }}'
+    enable_active_directory_user_discovery: '{{ ludus_sccm_enable_active_directory_user_discovery }}'
   vars:
     ansible_become: true
     ansible_become_method: runas

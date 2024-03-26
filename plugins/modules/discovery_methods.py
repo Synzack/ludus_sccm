@@ -12,32 +12,32 @@ options:
         - Site code of the SCCM deployment
         type: string
         required: true
-    ludus_sccm_enable_active_directory_forest_discovery:
+    enable_forest_discovery:
         description:
         - True/False whether to configure Active Directory forest discovery
         type: boolean
         required: true
-    ludus_sccm_enable_active_directory_boundary_creation:
+    enable_ad_boundary_creation:
         description:
         - True/False whether to configure automatic site boundaries when they are discovered
         type: boolean
         required: true
-    ludus_sccm_enable_subnet_boundary_creation:
+    enable_subnet_boundary_creation:
         description:
         - True/False whether to configure automatic IP address range boundaries as they are discovered
         type: boolean
         required: true
-    ludus_sccm_enable_active_directory_group_discovery:
+    enable_active_directory_group_discovery:
         description:
         - True/False whether to configure Active Directory group discovery
         type: boolean
         required: true
-    ludus_sccm_enable_active_directory_system_discovery:
+    enable_active_directory_system_discovery:
         description:
         - True/False whether to configure Active Directory system discovery
         type: boolean
         required: true
-    ludus_sccm_enable_active_directory_user_discovery:
+    enable_active_directory_user_discovery:
         description:
         - True/False whether to configure Active Directory user discovery
         type: boolean
@@ -61,10 +61,10 @@ EXAMPLES = r'''
 - name: Configure SCCM Discovery Methods
   synzack.ludus_sccm.discovery_methods:
     site_code: "123"
-    ludus_sccm_enable_active_directory_forest_discovery: true
-    ludus_sccm_enable_active_directory_boundary_creation: true
-    ludus_sccm_enable_subnet_boundary_creation: true
-    ludus_sccm_enable_active_directory_group_discovery: true
-    ludus_sccm_enable_active_directory_system_discovery: true
-    ludus_sccm_enable_active_directory_user_discovery: true
+    enable_forest_discovery: true
+    enable_ad_boundary_creation: true
+    enable_subnet_boundary_creation: true
+    enable_active_directory_group_discovery: true
+    enable_active_directory_system_discovery: true
+    enable_active_directory_user_discovery: true
 '''
