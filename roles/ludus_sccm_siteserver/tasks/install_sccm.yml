@@ -111,7 +111,7 @@
 
 - name: Get SCCM error log
   ansible.builtin.slurp:
-    src: "C:\\ludus\\sccm\\ConfigMgrSetup.log"
+    src: "C:\\ConfigMgrSetup.log"
   register: configmgrsetup_log
   when: not ccm_dll.stat.exists
 
