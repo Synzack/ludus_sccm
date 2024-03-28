@@ -22,13 +22,12 @@ ludus ansible collection add synzack.ludus_sccm
 
 None
 
-<!-- Requires separate installation of the `?` role. Because Ansible collections are not able to depend on roles, you will need to make sure that role is installed either by manually installing it with the `ludus ansible role add` command:
-
-```
-ludus ansible role add ?
-``` -->
-
 ## Usage
+
+> [!WARNING]
+> All SCCM VM hostnames MUST be <= 15 characters
+
+![SCCM Netbios Limitation](./sccm_netbios_limit.png)
 
 Here's an example Ludus configuration that uses this module to set up a full SCCM deployment:
 
@@ -63,7 +62,7 @@ ludus:
       - synzack.ludus_sccm.disable_firewall
 
   - vm_name: "{{ range_id }}-sccm-distro"
-    hostname: "{{ range_id }}-sccm-distro"
+    hostname: "sccm-distro"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
@@ -80,7 +79,7 @@ ludus:
       ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv' # Default = 'sccm-sitesrv'
 
   - vm_name: "{{ range_id }}-sccm-sql"
-    hostname: "{{ range_id }}-sccm-sql"
+    hostname: "sccm-sql" # MUST BE < 15 characters! SCCM requirement
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 13
@@ -94,13 +93,13 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_sql
     role_vars:
-      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv'    # Default = 'sccm-sitesrv'
-      ludus_sccm_sql_server_hostname: '{{ range_id }}-sccm-sql'         # Default = 'sccm-sql'
-      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  # Default = 'sqlsccmsvc'
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    # Default = 'sccm-sitesrv' MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_sql_server_hostname: 'sccm-sql'         # Default = 'sccm-sql'     MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  # Default = 'sqlsccmsvc'   MUST BE < 15 characters! SCCM requirement
       ludus_sccm_sql_svc_account_password: 'Password123' # Default = 'Password123' - Must Meet Complexity Requirements
 
   - vm_name: "{{ range_id }}-sccm-mgmt"
-    hostname: "{{ range_id }}-sccm-mgmt"
+    hostname: "sccm-mgmt" # MUST BE < 15 characters! SCCM requirement
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 14
@@ -114,10 +113,10 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_mgmt
     role_vars:
-      ludus_sccm_site_server_hostname: "{{ range_id }}-sccm-sitesrv" # Default = 'sccm-sitesrv'
+      ludus_sccm_site_server_hostname: "sccm-sitesrv" # Default = 'sccm-sitesrv'
 
   - vm_name: "{{ range_id }}-sccm-sitesrv"
-    hostname: "{{ range_id }}-sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config
+    hostname: "sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config. MUST BE < 15 characters! SCCM requirement
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
@@ -133,10 +132,10 @@ ludus:
     role_vars:
       ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
       ludus_sccm_sitename: Primary Site  # Default = Primary Site
-      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv'  # Default = 'sccm-sitesrv'
-      ludus_sccm_distro_server_hostname: '{{ range_id }}-sccm-distro' # Default = 'sccm-distro'
-      ludus_sccm_mgmt_server_hostname: '{{ range_id }}-sccm-mgmt'     # Default = 'sccm-mgmt'
-      ludus_sccm_sql_server_hostname: '{{ range_id }}-sccm-sql'       # Default = 'sccm-sql'
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  # Default = 'sccm-sitesrv' MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_distro_server_hostname: 'sccm-distro' # Default = 'sccm-distro'  MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     # Default = 'sccm-mgmt'    MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_sql_server_hostname: 'sccm-sql'       # Default = 'sccm-sql'     MUST BE < 15 characters! SCCM requirement
       # --------------------------NAA Account-------------------------------------------------
       ludus_sccm_configure_nna: true
       ludus_sccm_nna_username: 'sccm_naa'
@@ -200,7 +199,7 @@ via scp
 ```
 export LUDUS_USER_NANE=$(ludus user list --json | jq -r '.[].proxmoxUsername')
 ssh root@<ludus-host> "mkdir -r /opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm"
-scp -r ./ root@<ludus-host>:/opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm/
+rsync -av --exclude .git/ ./ root@<ludus-host>:/opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm/
 ```
 
 ## License

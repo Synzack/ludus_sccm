@@ -39,6 +39,31 @@
       - BITS-IIS-Ext
     state: present
 
+# Why do we have to do this lookup? Because if the user specified a hostname > 15 characters
+# Windows will truncate the comptuer name to the first 15 (plus a '$') and computer names
+# by default are not assigned a UPN in active directory
+# This block must be in each SCCM role since we do not know which will be run first (the user may change the order of hosts)
+- name: "Get sAMAccountName for {{ ludus_sccm_site_server_hostname }}"
+  when: hostvars["localhost"]["ludus_sccm_site_server_samaccountname"] is undefined
+  block:
+    - name: "Query DC to get sAMAccountName for {{ ludus_sccm_site_server_hostname }}"
+      microsoft.ad.object_info:
+        filter: 'DNSHostName -like "{{ ludus_sccm_site_server_hostname }}*"'
+        properties: "sAMAccountName"
+      register: ludus_sccm_site_server_sam_lookup
+      # This delegation prevents us from having to install the ActiveDirectory powershell module on this host
+      delegate_to: "{{ ludus_dc_vm_name }}"
+
+    - name: "Show the sAMAccountName for {{ ludus_sccm_site_server_hostname }}"
+      ansible.builtin.debug:
+        msg: "{{ ludus_sccm_site_server_sam_lookup.objects | map(attribute='sAMAccountName') | first }}"
+
+    - name: Set the site server sAMAccountName
+      ansible.builtin.set_fact:
+        ludus_sccm_site_server_samaccountname: "{{ ludus_sccm_site_server_sam_lookup.objects | map(attribute='sAMAccountName') | first }}"
+      delegate_to: localhost
+      delegate_facts: true # Use localhost to share this var between sccm hosts (like a cache)
+
 - name: Add the Site Server as a Local Admin
   ansible.windows.win_group_membership:
     vars:
@@ -49,5 +74,5 @@
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
     name: Administrators
     members:
-      - '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_site_server_hostname }}$'
+      - '{{ ludus_domain_netbios_name }}\{{ hostvars["localhost"]["ludus_sccm_site_server_samaccountname"] }}'
     state: present

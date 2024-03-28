@@ -91,7 +91,15 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
-- name: Setup SCCM
+# This prevents waiting hours for SCCM setup to fail if the MSSQL server is not up
+- name: Fail if the SQL server is not reachable
+  ansible.windows.win_wait_for:
+    host: "{{ ludus_sccm_sql_server_hostname }}"
+    port: 1433
+    state: started
+    timeout: 5
+
+- name: Setup SCCM - This will take a long time, be patient
   ansible.windows.win_shell: |
    C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64\setup.exe /script C:\ludus\sccm\ConfigMgrSetup.ini
   register: setup_configmgr

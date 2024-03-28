@@ -1,9 +1,7 @@
 ---
+ludus_install_directory: /opt/ludus
 ludus_sccm_site_server_hostname: 'sccm-sitesrv'
 ludus_sccm_sql_server_hostname: 'sccm-sql'
 ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'
 ludus_sccm_sql_svc_account_password: 'Password123'
-
-# Do Not Change Below
 ludus_sccm_sql2022_url: https://archive.org/download/enu_sql_server_2022_standard_edition_x64_dvd_43079f69/enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso
-ludus_sccm_sql_sysadmin_accounts: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_site_server_hostname }}$ {{ ludus_domain_netbios_name }}\{{ defaults.ad_domain_admin }}'

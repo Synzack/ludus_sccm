@@ -1,4 +1,16 @@
 ---
+- name: Check that all hostnames are <= 15 characters
+  ansible.builtin.fail:
+    msg: "{{ sccm_vm_hostname }} is longer than 15 characters. Due to requirements of SCCM this is not allowed."
+  when: sccm_vm_hostname | length > 15
+  loop:
+    - "{{ ludus_sccm_site_server_hostname }}"
+    - "{{ ludus_sccm_distro_server_hostname }}"
+    - "{{ ludus_sccm_mgmt_server_hostname }}"
+    - "{{ ludus_sccm_sql_server_hostname }}"
+  loop_control:
+    loop_var: sccm_vm_hostname
+
 - name: Enable update service
   ansible.windows.win_service:
     name: Windows Update
