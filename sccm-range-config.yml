@@ -131,8 +131,3 @@ ludus:
       ludus_sccm_enable_active_directory_group_discovery: true
       ludus_sccm_enable_active_directory_system_discovery: true
       ludus_sccm_enable_active_directory_user_discovery: true
-      # -----------------------------ludus_sccm_pushover-------------------------------------------------
-      ludus_sccm_pushover: false                     # Default = false
-      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = 'Lab Setup Complete'
-      ludus_sccm_pushover_app_token: ''              # Default = ''
-      ludus_sccm_pushover_user_key: ''               # Default = ''

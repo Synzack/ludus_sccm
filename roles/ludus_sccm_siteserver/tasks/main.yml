@@ -79,12 +79,3 @@
 - name: Configure Discovery Methods
   ansible.builtin.include_tasks:
     file: discovery_methods.yml
-
-# ludus_sccm_pushover-----------------------------------------------------------------------------
-- name: Send Complete Notifications via pushover.net
-  community.general.pushover:
-    msg: '{{ ludus_sccm_pushover_msg }}'
-    app_token: '{{ ludus_sccm_pushover_app_token }}'
-    user_key: '{{ ludus_sccm_pushover_user_key }}'
-  delegate_to: localhost
-  when: ludus_sccm_pushover

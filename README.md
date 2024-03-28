@@ -208,4 +208,4 @@ GPLv3
 
 ## Author
 
-This collection was created by [Zach Stein](https://twitter.com/synzack21), for [Ludus](ludus.cloud).
+This collection was created by [Zach Stein](https://twitter.com/synzack21) and (Erik Hunstad)[https://github.com/kernel-sanders], for [Ludus](ludus.cloud).
