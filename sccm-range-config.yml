@@ -81,7 +81,7 @@ ludus:
     role_vars:
       ludus_sccm_site_server_hostname: "sccm-sitesrv" # Default = 'sccm-sitesrv'
 
-  - vm_name: "sccm-sitesrv"
+  - vm_name: "{{ range_id }}-sccm-sitesrv"
     hostname: "sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config
     template: win2022-server-x64-template
     vlan: 10
