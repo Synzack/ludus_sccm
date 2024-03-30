@@ -1,0 +1,23 @@
+---
+- name: Install WebDAV
+  ansible.windows.win_feature:
+    name:
+      - WebDAV-Redirector
+    state: present
+  register: webdav_install
+  
+- name: Reboot after Webdav Installation
+  ansible.windows.win_reboot:
+  when: webdav_install.changed
+
+- name: Ensure WebClient Starts Automatically
+  win_service:
+    name: "WebClient"
+    start_mode: auto
+    state: started
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
