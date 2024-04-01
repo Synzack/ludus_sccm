@@ -10,9 +10,9 @@ ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'
 ludus_sccm_sql_server_hostname: 'sccm-sql'
 
 #--------------------------Network Access Account--------------------------------
-ludus_sccm_configure_nna: false
-ludus_sccm_nna_username: ''
-ludus_sccm_nna_password: ''
+ludus_sccm_configure_naa: false
+ludus_sccm_naa_username: ''
+ludus_sccm_naa_password: ''
 #--------------------------Client Push Account-----------------------------------------
 ludus_sccm_configure_client_push: true
 ludus_sccm_client_push_username: 'sccm_push'

@@ -67,7 +67,7 @@
 - name: Begin NAA Configuration
   ansible.builtin.include_tasks:
     file: config_naa.yml
-  when: ludus_sccm_configure_nna
+  when: ludus_sccm_configure_naa
 
 # Configure Push Account---------------------------------------------------------------
 - name: Configure Push Client Installation

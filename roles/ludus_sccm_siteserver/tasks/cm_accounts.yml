@@ -11,9 +11,9 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
   loop:
-    - { configure_bool: '{{ ludus_sccm_configure_nna }}',
-        name: '{{ ludus_sccm_nna_username }}',
-        password: '{{ ludus_sccm_nna_password }}'
+    - { configure_bool: '{{ ludus_sccm_configure_naa }}',
+        name: '{{ ludus_sccm_naa_username }}',
+        password: '{{ ludus_sccm_naa_password }}'
     }
     - { configure_bool: '{{ ludus_sccm_configure_client_push }}',
         name: '{{ ludus_sccm_client_push_username }}',
@@ -42,9 +42,9 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
   loop:
-    - { configure_bool: '{{ ludus_sccm_configure_nna }}',
-        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_nna_username }}',
-        password: '{{ ludus_sccm_nna_password }}'
+    - { configure_bool: '{{ ludus_sccm_configure_naa }}',
+        name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_naa_username }}',
+        password: '{{ ludus_sccm_naa_password }}'
     }
     - { configure_bool: '{{ ludus_sccm_configure_client_push }}',
         name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_client_push_username }}',

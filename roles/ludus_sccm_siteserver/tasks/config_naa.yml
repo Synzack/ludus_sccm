@@ -1,7 +1,7 @@
 ---
 - name: Configure Network Access Accounts
   synzack.ludus_sccm.naa:
-    name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_nna_username }}'
+    name: '{{ ludus_domain_netbios_name }}\{{ ludus_sccm_naa_username }}'
     site_code: '{{ ludus_sccm_sitecode }}'
   vars:
     ansible_become: true

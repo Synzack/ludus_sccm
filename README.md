@@ -137,9 +137,9 @@ ludus:
       ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     # Default = 'sccm-mgmt'    MUST BE < 15 characters! SCCM requirement
       ludus_sccm_sql_server_hostname: 'sccm-sql'       # Default = 'sccm-sql'     MUST BE < 15 characters! SCCM requirement
       # --------------------------NAA Account-------------------------------------------------
-      ludus_sccm_configure_nna: true
-      ludus_sccm_nna_username: 'sccm_naa'
-      ludus_sccm_nna_password: 'Password123'
+      ludus_sccm_configure_naa: true
+      ludus_sccm_naa_username: 'sccm_naa'
+      ludus_sccm_naa_password: 'Password123'
       # --------------------------Client Push Account-----------------------------------------
       ludus_sccm_configure_client_push: true
       ludus_sccm_client_push_username: 'sccm_push'
