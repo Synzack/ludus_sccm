@@ -23,6 +23,8 @@ ludus ansible collection add synzack.ludus_sccm
 None
 
 ## Usage
+> [!WARNING]
+> Due to unknown issues with SCCM, *.local* domain suffixes will not work properly. We recommend *.domain* or *.lab* for your domain suffix
 
 > [!WARNING]
 > All SCCM VM hostnames MUST be <= 15 characters
