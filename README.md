@@ -29,7 +29,7 @@ None
 
 ![SCCM Netbios Limitation](./sccm_netbios_limit.png)
 
-Here's an example Ludus configuration that uses this module to set up a full SCCM deployment:
+Here's an example Ludus configuration that uses this module to set up a full SCCM deployment, along with default values:
 
 ```yaml
 ludus:
