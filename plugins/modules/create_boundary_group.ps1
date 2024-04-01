@@ -25,13 +25,11 @@ Set-Location "$($module.Params.site_code):\"
 
 #Check if boundary group exists
  $bg_exists = Get-CMBoundaryGroup -Name $module.Params.boundary_group_name
- if($bg_exists){
-     $module.ExitJson()
+ if(-not $bg_exists){
+     #Create boundary group and description
+    New-CMBoundaryGroup -Name $module.Params.boundary_group_name -Description $module.Params.boundary_group_description
  }
     
-#Create boundary group and description
-New-CMBoundaryGroup -Name $module.Params.boundary_group_name -Description $module.Params.boundary_group_description
-
 #Configure boundary group
 Set-CMBoundaryGroup -Name $module.Params.boundary_group_name -DefaultSiteCode $module.Params.site_code
 
