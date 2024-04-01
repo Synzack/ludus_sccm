@@ -1,0 +1,39 @@
+#Used from https://github.com/badsectorlabs/ludus_adcs/blob/main/tasks/main.yml
+---
+- name: Install ADCS
+  ansible.windows.win_feature:
+    name: AD-Certificate
+    state: present
+    include_sub_features: true
+    include_management_tools: true
+
+- name: Install-ADCSCertificationAuthority-PS
+  ansible.windows.win_powershell:
+    script: |
+      [CmdletBinding()]
+      param (
+          [String]
+          $domain_username,
+
+          [String]
+          $domain_password,
+
+          [String]
+          $ca_common_name
+      )
+      $pass = ConvertTo-SecureString $domain_password -AsPlainText -Force
+      $Cred = New-Object System.Management.Automation.PSCredential ($domain_username, $pass)
+      try {
+        Install-AdcsCertificationAuthority -Credential $Cred -CAType EnterpriseRootCA -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -KeyLength 2048 -HashAlgorithmName SHA256 -ValidityPeriod Years -ValidityPeriodUnits 5 -CACommonName $ca_common_name -Force
+        $Ansible.Changed = $true
+      } catch {
+        $Ansible.Changed = $false
+      }
+    error_action: stop
+    parameters:
+      domain_username: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+      domain_password: '{{ defaults.ad_domain_admin_password }}'
+      ca_common_name: '{{ ludus_domain_netbios_name }}-CA'
+  
+- name: Reboot after ADCS Installation
+  ansible.windows.win_reboot:

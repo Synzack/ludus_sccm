@@ -11,6 +11,8 @@ ludus:
     domain:
       fqdn: ludus.domain
       role: primary-dc
+    roles:
+      - synzack.ludus_sccm.install_adcs
 
   - vm_name: "{{ range_id }}-Workstation"
     hostname: "Workstation"

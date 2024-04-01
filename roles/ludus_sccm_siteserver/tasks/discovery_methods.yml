@@ -20,7 +20,7 @@
   synzack.ludus_sccm.create_boundary_group:
     site_code: '{{ ludus_sccm_sitecode }}'
     boundary_group_name: "Discovery Default Boundary Group"
-    boundary_group_description: "Default Boundary Group for Automation Discovery Boundary Creation"
+    boundary_group_description: "Default Ludus Boundary Group"
     site_system_server_names:
       - '{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
       - '{{ ludus_sccm_distro_server_hostname }}.{{ ludus_domain_fqdn }}'
