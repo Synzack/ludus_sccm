@@ -14,7 +14,7 @@ ludus_sccm_configure_naa: false
 ludus_sccm_naa_username: ''
 ludus_sccm_naa_password: ''
 #--------------------------Client Push Account-----------------------------------------
-ludus_sccm_configure_client_push: true
+ludus_sccm_configure_client_push: false
 ludus_sccm_client_push_username: 'sccm_push'
 ludus_sccm_client_push_password: 'password'
 ludus_sccm_enable_automatic_client_push_installation: true
@@ -24,11 +24,11 @@ ludus_sccm_enable_system_type_workstation: true
 ludus_sccm_install_client_to_domain_controller: false
 ludus_sccm_allow_NTLM_fallback: true
 #--------------------------Task Sequence Account---------------------------------------
-ludus_sccm_configure_task_sequence: true
+ludus_sccm_configure_task_sequence: false
 ludus_sccm_task_sequence_username: 'sccm_push'
 ludus_sccm_task_sequence_password: 'password'
 #--------------------------Task Sequence - Domain Join Account-------------------------
-ludus_sccm_configure_domain_join: true
+ludus_sccm_configure_domain_join: false
 ludus_sccm_domain_join_username: 'sccm_push'
 ludus_sccm_domain_join_password: 'password'
 #---------------------------Discovery Methods------------------------------------------
@@ -39,11 +39,6 @@ ludus_sccm_enable_active_directory_group_discovery: true
 ludus_sccm_enable_active_directory_system_discovery: true
 ludus_sccm_enable_active_directory_user_discovery: true
 
-#---------------------------ludus_sccm_pushover----------------------------------
-ludus_sccm_pushover: false
-ludus_sccm_pushover_msg: ''
-ludus_sccm_pushover_app_token: ''
-ludus_sccm_pushover_user_key: ''
 
 #---------------------------Do Not Change Below----------------------------------
 ludus_sccm_system_management_template: SystemManagement.ps1.j2

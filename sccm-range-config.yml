@@ -95,6 +95,7 @@ ludus:
       role: member
     roles:
       - synzack.ludus_sccm.ludus_sccm_siteserver
+      - synzack.ludus_sccm.enable_webdav
     role_vars:
       ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
       ludus_sccm_sitename: Primary Site  # Default = Primary Site
@@ -116,14 +117,6 @@ ludus:
       ludus_sccm_enable_system_type_workstation: true
       ludus_sccm_install_client_to_domain_controller: false
       ludus_sccm_allow_NTLM_fallback: true
-      # --------------------------Task Sequence Account---------------------------------------
-      ludus_sccm_configure_task_sequence: true
-      ludus_sccm_task_sequence_username: 'sccm_task'
-      ludus_sccm_task_sequence_password: 'Password123'
-      # --------------------------Task Sequence - Domain Join Account-------------------------
-      ludus_sccm_configure_domain_join: true
-      ludus_sccm_domain_join_username: 'sccm_domainjoin'
-      ludus_sccm_domain_join_password: 'Password123'
       # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
       ludus_sccm_enable_active_directory_boundary_creation: true
