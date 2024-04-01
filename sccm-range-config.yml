@@ -13,6 +13,7 @@ ludus:
       role: primary-dc
     roles:
       - synzack.ludus_sccm.install_adcs
+      - synzack.ludus_sccm.disable_firewall
 
   - vm_name: "{{ range_id }}-Workstation"
     hostname: "Workstation"
@@ -44,7 +45,7 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_distro
     role_vars:
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv' # Default = 'sccm-sitesrv'
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv' 
 
   - vm_name: "{{ range_id }}-sccm-sql"
     hostname: "sccm-sql"
@@ -61,10 +62,10 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_sql
     role_vars:
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    # Default = 'sccm-sitesrv'
-      ludus_sccm_sql_server_hostname: 'sccm-sql'         # Default = 'sccm-sql'
-      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  # Default = 'sqlsccmsvc'
-      ludus_sccm_sql_svc_account_password: 'Password123' # Default = 'Password123' - Must Meet Complexity Requirements
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    
+      ludus_sccm_sql_server_hostname: 'sccm-sql'         
+      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  
+      ludus_sccm_sql_svc_account_password: 'Password123' 
 
   - vm_name: "{{ range_id }}-sccm-mgmt"
     hostname: "sccm-mgmt"
@@ -81,10 +82,10 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_mgmt
     role_vars:
-      ludus_sccm_site_server_hostname: "sccm-sitesrv" # Default = 'sccm-sitesrv'
+      ludus_sccm_site_server_hostname: "sccm-sitesrv" 
 
   - vm_name: "{{ range_id }}-sccm-sitesrv"
-    hostname: "sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config
+    hostname: "sccm-sitesrv" 
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
@@ -99,12 +100,12 @@ ludus:
       - synzack.ludus_sccm.ludus_sccm_siteserver
       - synzack.ludus_sccm.enable_webdav
     role_vars:
-      ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
-      ludus_sccm_sitename: Primary Site  # Default = Primary Site
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  # Default = 'sccm-sitesrv'
-      ludus_sccm_distro_server_hostname: 'sccm-distro' # Default = 'sccm-distro'
-      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     # Default = 'sccm-mgmt'
-      ludus_sccm_sql_server_hostname: 'sccm-sql'       # Default = 'sccm-sql'
+      ludus_sccm_sitecode: 123           
+      ludus_sccm_sitename: Primary Site  
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  
+      ludus_sccm_distro_server_hostname: 'sccm-distro' 
+      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     
+      ludus_sccm_sql_server_hostname: 'sccm-sql'       
       # --------------------------NAA Account-------------------------------------------------
       ludus_sccm_configure_naa: true
       ludus_sccm_naa_username: 'sccm_naa'
