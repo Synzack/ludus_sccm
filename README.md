@@ -34,7 +34,7 @@ Here's an example Ludus configuration that uses this module to set up a full SCC
 ```yaml
 ludus:
   - vm_name: "{{ range_id }}-DC01"
-    hostname: "{{ range_id }}-DC01"
+    hostname: "DC01"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 10
@@ -45,9 +45,12 @@ ludus:
     domain:
       fqdn: ludus.domain
       role: primary-dc
+    roles:
+      - synzack.ludus_sccm.install_adcs
+      - synzack.ludus_sccm.disable_firewall
 
   - vm_name: "{{ range_id }}-Workstation"
-    hostname: "{{ range_id }}-Workstation"
+    hostname: "Workstation"
     template: win11-22h2-x64-enterprise-template
     vlan: 10
     ip_last_octet: 11
@@ -76,10 +79,10 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_distro
     role_vars:
-      ludus_sccm_site_server_hostname: '{{ range_id }}-sccm-sitesrv' # Default = 'sccm-sitesrv'
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv' 
 
   - vm_name: "{{ range_id }}-sccm-sql"
-    hostname: "sccm-sql" # MUST BE < 15 characters! SCCM requirement
+    hostname: "sccm-sql"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 13
@@ -93,13 +96,13 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_sql
     role_vars:
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    # Default = 'sccm-sitesrv' MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_sql_server_hostname: 'sccm-sql'         # Default = 'sccm-sql'     MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  # Default = 'sqlsccmsvc'   MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_sql_svc_account_password: 'Password123' # Default = 'Password123' - Must Meet Complexity Requirements
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'    
+      ludus_sccm_sql_server_hostname: 'sccm-sql'         
+      ludus_sccm_sql_svc_account_username: 'sqlsccmsvc'  
+      ludus_sccm_sql_svc_account_password: 'Password123' 
 
   - vm_name: "{{ range_id }}-sccm-mgmt"
-    hostname: "sccm-mgmt" # MUST BE < 15 characters! SCCM requirement
+    hostname: "sccm-mgmt"
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 14
@@ -113,10 +116,10 @@ ludus:
     roles:
       - synzack.ludus_sccm.ludus_sccm_mgmt
     role_vars:
-      ludus_sccm_site_server_hostname: "sccm-sitesrv" # Default = 'sccm-sitesrv'
+      ludus_sccm_site_server_hostname: "sccm-sitesrv" 
 
   - vm_name: "{{ range_id }}-sccm-sitesrv"
-    hostname: "sccm-sitesrv" # If changed, you need to update the "ludus_sccm_site_server_hostname" variables in this config. MUST BE < 15 characters! SCCM requirement
+    hostname: "sccm-sitesrv" 
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
@@ -129,13 +132,14 @@ ludus:
       role: member
     roles:
       - synzack.ludus_sccm.ludus_sccm_siteserver
+      - synzack.ludus_sccm.enable_webdav
     role_vars:
-      ludus_sccm_sitecode: 123           # Default = 123 - Must be a 3 character string (upper case and numbers allowed)
-      ludus_sccm_sitename: Primary Site  # Default = Primary Site
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  # Default = 'sccm-sitesrv' MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_distro_server_hostname: 'sccm-distro' # Default = 'sccm-distro'  MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     # Default = 'sccm-mgmt'    MUST BE < 15 characters! SCCM requirement
-      ludus_sccm_sql_server_hostname: 'sccm-sql'       # Default = 'sccm-sql'     MUST BE < 15 characters! SCCM requirement
+      ludus_sccm_sitecode: 123           
+      ludus_sccm_sitename: Primary Site  
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  
+      ludus_sccm_distro_server_hostname: 'sccm-distro' 
+      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     
+      ludus_sccm_sql_server_hostname: 'sccm-sql'       
       # --------------------------NAA Account-------------------------------------------------
       ludus_sccm_configure_naa: true
       ludus_sccm_naa_username: 'sccm_naa'
@@ -150,14 +154,6 @@ ludus:
       ludus_sccm_enable_system_type_workstation: true
       ludus_sccm_install_client_to_domain_controller: false
       ludus_sccm_allow_NTLM_fallback: true
-      # --------------------------Task Sequence Account---------------------------------------
-      ludus_sccm_configure_task_sequence: true
-      ludus_sccm_task_sequence_username: 'sccm_task'
-      ludus_sccm_task_sequence_password: 'Password123'
-      # --------------------------Task Sequence - Domain Join Account-------------------------
-      ludus_sccm_configure_domain_join: true
-      ludus_sccm_domain_join_username: 'sccm_domainjoin'
-      ludus_sccm_domain_join_password: 'Password123'
       # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
       ludus_sccm_enable_active_directory_boundary_creation: true
@@ -165,12 +161,6 @@ ludus:
       ludus_sccm_enable_active_directory_group_discovery: true
       ludus_sccm_enable_active_directory_system_discovery: true
       ludus_sccm_enable_active_directory_user_discovery: true
-      # -----------------------------ludus_sccm_pushover-------------------------------------------------
-      ludus_sccm_pushover: false                     # Default = false
-      ludus_sccm_pushover_msg: 'Lab Setup Complete'  # Default = 'Lab Setup Complete'
-      ludus_sccm_pushover_app_token: ''              # Default = ''
-      ludus_sccm_pushover_user_key: ''               # Default = ''
-
 ```
 
 Then set the config and deploy it
