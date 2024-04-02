@@ -45,6 +45,7 @@ ludus:
     vlan: 10
     ip_last_octet: 10
     ram_gb: 4
+    ram_min_gb: 1
     cpus: 2
     windows:
       sysprep: true
@@ -61,6 +62,7 @@ ludus:
     vlan: 10
     ip_last_octet: 11
     ram_gb: 4
+    ram_min_gb: 1
     cpus: 2
     windows:
       sysprep: true
@@ -75,7 +77,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
-    ram_gb: 8
+    ram_gb: 4
+    ram_min_gb: 1
     cpus: 4
     windows:
       sysprep: true
@@ -92,7 +95,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 13
-    ram_gb: 8
+    ram_gb: 4
+    ram_min_gb: 1
     cpus: 4
     windows:
       sysprep: true
@@ -112,7 +116,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 14
-    ram_gb: 8
+    ram_gb: 4
+    ram_min_gb: 1
     cpus: 4
     windows:
       sysprep: true
@@ -129,7 +134,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
-    ram_gb: 8
+    ram_gb: 4
+    ram_min_gb: 1
     cpus: 4
     windows:
       sysprep: true
@@ -158,7 +164,7 @@ ludus:
       ludus_sccm_enable_system_type_configuration_manager: true
       ludus_sccm_enable_system_type_server: true
       ludus_sccm_enable_system_type_workstation: true
-      ludus_sccm_install_client_to_domain_controller: false
+      ludus_sccm_install_client_to_domain_controller: false  
       ludus_sccm_allow_NTLM_fallback: true
       # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
