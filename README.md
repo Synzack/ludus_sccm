@@ -1,4 +1,4 @@
-# SCCM Collection for Ansible and [Ludus](ludus.cloud)
+# SCCM Collection for Ansible and [Ludus](https://ludus.cloud)
 
 This collection includes Ansible roles to install and configure SCCM. For a good example of the collection's usage, see the `sccm-range-config.yml`.
 
@@ -27,7 +27,7 @@ None
 ## Notes
 * Due to unknown issues with SCCM, *.local* domain suffixes will not work properly. We recommend using something else such as *.domain* or *.lab* for your domain suffix
 * If you wish to add client push to the DC, you will need to add Remote Scheduled Tasks Management firewall rules or use the *disable_firewall* role
-* At this time, all 4 site server roles are needed to deploy SCCM, there is no standlone option yet
+* At this time, all 4 site server roles are needed to deploy SCCM, there is no standalone option yet
 
 ## Usage
 > [!WARNING]
@@ -45,7 +45,6 @@ ludus:
     vlan: 10
     ip_last_octet: 10
     ram_gb: 4
-    ram_min_gb: 1
     ram_min_gb: 1
     cpus: 2
     windows:
@@ -78,8 +77,6 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
-    ram_gb: 4
-    ram_min_gb: 1
     ram_gb: 4
     ram_min_gb: 1
     cpus: 4
@@ -121,8 +118,6 @@ ludus:
     ip_last_octet: 14
     ram_gb: 4
     ram_min_gb: 1
-    ram_gb: 4
-    ram_min_gb: 1
     cpus: 4
     windows:
       sysprep: true
@@ -139,8 +134,6 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
-    ram_gb: 4
-    ram_min_gb: 1
     ram_gb: 4
     ram_min_gb: 1
     cpus: 4
@@ -217,4 +210,4 @@ GPLv3
 
 ## Author
 
-This collection was created by [Zach Stein](https://twitter.com/synzack21) and [Erik Hunstad](https://github.com/kernel-sanders), for [Ludus](ludus.cloud).
+This collection was created by [Zach Stein](https://twitter.com/synzack21) and [Erik Hunstad](https://github.com/kernel-sanders), for [Ludus](https://ludus.cloud).
