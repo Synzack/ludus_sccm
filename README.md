@@ -33,7 +33,7 @@ None
 > [!WARNING]
 > All SCCM VM hostnames MUST be <= 15 characters
 
-![SCCM Netbios Limitation](./sccm_netbios_limit.png)
+<p align="center"><img width="450" height="250" src="./sccm_netbios_limit.png"></p>
 
 Here's an example Ludus configuration that uses this module to set up a full SCCM deployment, along with default values:
 
