@@ -22,10 +22,12 @@ ludus ansible collection add synzack.ludus_sccm
 
 None
 
-## Usage
-> [!WARNING]
-> Due to unknown issues with SCCM, *.local* domain suffixes will not work properly. We recommend *.domain* or *.lab* for your domain suffix
+## Notes
+* Due to unknown issues with SCCM, *.local* domain suffixes will not work properly. We recommend using something else such as *.domain* or *.lab* for your domain suffix
+* If you wish to add client push to the DC, you will need to add the *disable_firewall* role
+* At this time, all 4 site server roles are needed to deploy SCCM, there is no standlone option yet
 
+## Usage
 > [!WARNING]
 > All SCCM VM hostnames MUST be <= 15 characters
 
