@@ -118,7 +118,7 @@ ludus:
       ludus_sccm_enable_system_type_configuration_manager: true
       ludus_sccm_enable_system_type_server: true
       ludus_sccm_enable_system_type_workstation: true
-      ludus_sccm_install_client_to_domain_controller: false
+      ludus_sccm_install_client_to_domain_controller: false  #"True" Requires Remote Scheduled Tasks Managmenet Firewall Enabled (or no firewall)
       ludus_sccm_allow_NTLM_fallback: true
       # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
