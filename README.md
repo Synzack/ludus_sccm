@@ -4,7 +4,9 @@ This collection includes Ansible roles to install and configure SCCM. For a good
 
 Roles included in this collection:
 
-  - `synzack.ludus_sccm.disable_firewall` 
+  - `synzack.ludus_sccm.disable_firewall`
+  - `synzack.ludus_sccm.enable_webdav`
+  - `synzack.ludus_sccm.install_adcs`
   - `synzack.ludus_sccm.ludus_sccm_distro`
   - `synzack.ludus_sccm.ludus_sccm_mgmt`
   - `synzack.ludus_sccm.ludus_sccm_siteserver`
