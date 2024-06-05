@@ -135,7 +135,7 @@ ludus:
       ludus_sccm_enable_active_directory_user_discovery: true
       # ----------------------------------PXE-------------------------------------------------
       ludus_sccm_enable_pxe: true
-      ludus_enable_pxe_password: yes
+      ludus_enable_pxe_password: false
       ludus_pxe_password: 'Password123'
       ludus_domain_join_account: domainadmin
       ludus_domain_join_password: 'password'
