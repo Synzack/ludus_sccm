@@ -18,7 +18,7 @@
 - name: Install adksetup.exe
   ansible.windows.win_command: 'C:\ludus\sccm\adksetup.exe /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool'
   args:
-    creates: "{{ ludus_sccm_adksetup_creates_path }}"
+    creates: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\User State Migration Tool\\amd64\\cmi2migxml.dll"
   vars:
     ansible_become: true
     ansible_become_method: runas
@@ -29,7 +29,7 @@
 - name: Install adkwinpesetup
   ansible.windows.win_command: 'C:\ludus\sccm\adkwinpesetup.exe /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment'
   args:
-    creates: "{{ ludus_sccm_adkwinpesetup_creates_path }}"
+    creates: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\Windows Preinstallation Environment\\MakeWinPEMedia.cmd"
   vars:
     ansible_become: true
     ansible_become_method: runas
@@ -110,33 +110,33 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
   args:
-    creates: "C:\\Program Files\\Microsoft Configuration Manager\\bin\\x64\\ccm.dll"
+    creates: "C:\\Program Files\\Microsoft Configuration Manager\\install.map"
 
 - name: Check for success
   ansible.windows.win_stat:
-    path: "C:\\Program Files\\Microsoft Configuration Manager\\bin\\x64\\ccm.dll"
-  register: ccm_dll
+    path: "C:\\Program Files\\Microsoft Configuration Manager\\install.map"
+  register: install_files
 
 - name: Get SCCM error log
   ansible.builtin.slurp:
     src: "C:\\ConfigMgrSetup.log"
   register: configmgrsetup_log
-  when: not ccm_dll.stat.exists
+  when: not install_files.stat.exists
 
 - name: Reboot after SCCM error (allows for Setup to run again)
   ansible.windows.win_reboot:
-  when: not ccm_dll.stat.exists
+  when: not install_files.stat.exists
 
 - name: Show ConfigMgrSetup.log
   ansible.builtin.debug:
     msg: "{{ configmgrsetup_log['content'] | b64decode }}"
-  when: not ccm_dll.stat.exists
+  when: not install_files.stat.exists
 
 - name: Fail ansible on failed install
   ansible.builtin.fail:
     msg: "SCCM failed to install. Check the log output above for details."
-  when: not ccm_dll.stat.exists
+  when: not install_files.stat.exists
 
 - name: Reboot after SCCM site installation
   ansible.windows.win_reboot:
-  when: setup_configmgr.changed and ccm_dll.stat.exists
+  when: setup_configmgr.changed and install_files.stat.exists

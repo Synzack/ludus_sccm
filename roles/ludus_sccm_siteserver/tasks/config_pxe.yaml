@@ -1,0 +1,80 @@
+---
+- name: Enable PXE on Distribution Point
+  synzack.ludus_sccm.enable_pxe:
+    toggle_password: '{{ ludus_enable_pxe_password }}'
+    password:  '{{ ludus_pxe_password }}'
+    site_code: '{{ ludus_sccm_sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Create OSD Images Folder
+  ansible.windows.win_file:
+    path: 'C:\Program Files\Microsoft Configuration Manager\OSD\Images'
+    state: directory
+
+- name: Check if ISO file exists on Site Server
+  ansible.windows.win_stat:
+    path: "{{ ludus_sccm_host_path }}\\win10.iso"
+  register: file_host_check
+
+- name: Copy ISO file to Site Server
+  ansible.windows.win_copy:
+    src: "/var/lib/vz/template/iso/19044.1288.211006-0501.21h2_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
+    dest: "{{ ludus_sccm_host_path }}\\win10.iso"
+  when: not file_host_check.stat.exists
+
+- name: Check if WIM File Exists on Site Server
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\Microsoft Configuration Manager\OSD\Images\win10.wim'
+  register: wim_host_check
+
+- name: Mount ISO to Site Server
+  community.windows.win_disk_image:
+    image_path: "{{ ludus_sccm_host_path }}\\win10.iso"
+    state: present
+  register: disk_image_out
+  when: not wim_host_check.stat.exists
+
+- name: Copy install.wim to Site Server OSD Folder
+  ansible.windows.win_copy:
+    src: '{{ disk_image_out.mount_paths[0] }}sources\install.wim'
+    dest: 'C:\Program Files\Microsoft Configuration Manager\OSD\Images\win10.wim'
+    remote_src: true
+  when: not wim_host_check.stat.exists
+
+- name: Unmount ISO 
+  community.windows.win_disk_image:
+    image_path: "{{ ludus_sccm_host_path }}\\win10.iso"
+    state: absent
+  when: not wim_host_check.stat.exists
+
+- name: Add and Distribute SCCM OS & Boot Images
+  synzack.ludus_sccm.add_os_image:
+    name: "Windows10"
+    path: '\\{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}\sms_{{ ludus_sccm_sitecode }}\OSD\Images\win10.wim'
+    site_code: '{{ ludus_sccm_sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Create OS Image Task Sequence
+  synzack.ludus_sccm.add_os_task_sequence:
+    name: "Deploy-OS"
+    site_code: '{{ ludus_sccm_sitecode }}'
+    domain_name: '{{ ludus_domain_fqdn }}'
+    domain_account: '{{ ludus_domain_netbios_name }}\{{ ludus_domain_join_account }}'
+    domain_password: '{{ ludus_domain_join_password }}'
+    os_image: 'Windows10'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

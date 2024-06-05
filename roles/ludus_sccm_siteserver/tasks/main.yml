@@ -28,11 +28,13 @@
 - name: Install Windows Features
   ansible.windows.win_feature:
     name:
+      - BITS
+      - BITS-IIS-Ext
+      - GPMC
       - NET-Framework-Core
       - NET-Framework-45-Core
       - RDC
       - RSAT
-      - GPMC
       - Web-WebServer
       - Web-Common-Http
       - Web-Dir-Browsing
@@ -49,8 +51,6 @@
       - Web-ISAPI-Ext
       - Web-Scripting-Tools
       - Web-Mgmt-Service
-      - BITS
-      - BITS-IIS-Ext
     state: present
 
 # Start SCCM Install-------------------------------------------------------------------
@@ -79,3 +79,9 @@
 - name: Configure Discovery Methods
   ansible.builtin.include_tasks:
     file: discovery_methods.yml
+
+# Configure PXE------------------------------------------------------------------------
+- name: Configure PXE
+  ansible.builtin.include_tasks:
+    file: config_pxe.yaml
+  when: ludus_sccm_enable_pxe

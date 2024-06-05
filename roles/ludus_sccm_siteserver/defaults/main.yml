@@ -1,5 +1,6 @@
 ---
 ludus_install_directory: /opt/ludus
+ludus_sccm_host_path: "C:\\ludus\\sccm"
 
 ludus_sccm_sitecode: 123
 ludus_sccm_sitename: Primary Site
@@ -39,6 +40,13 @@ ludus_sccm_enable_active_directory_group_discovery: true
 ludus_sccm_enable_active_directory_system_discovery: true
 ludus_sccm_enable_active_directory_user_discovery: true
 
+# ----------------------------------PXE-------------------------------------------------
+ludus_sccm_enable_pxe: false
+ludus_enable_pxe_password: false
+ludus_pxe_password: 'Password123'
+ludus_domain_join_account: domainadmin
+ludus_domain_join_password: 'password'
+
 
 #---------------------------Do Not Change Below----------------------------------
 ludus_sccm_system_management_template: SystemManagement.ps1.j2
@@ -48,12 +56,9 @@ ludus_sccm_win_sccm_config_default_prereq_path: C:\SCCM
 
 ludus_sccm_configmgr_url: https://go.microsoft.com/fwlink/p/?LinkID=2195628&clcid=0x409&culture=en-us&country=us
 
+#https://gist.github.com/dansonnenburg/73a2c54d05e03622b9d968e817af89b6
 ludus_sccm_adksetup_url: https://download.microsoft.com/download/0/1/C/01CC78AA-B53B-4884-B7EA-74F2878AA79F/adk/adksetup.exe
-ludus_sccm_adksetup_arguments: /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool
-ludus_sccm_adksetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\User State Migration Tool\\amd64\\wdscore.dll"
-
 ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/D/7/E/D7E22261-D0B3-4ED6-8151-5E002C7F823D/adkwinpeaddons/adkwinpesetup.exe
-ludus_sccm_adkwinpesetup_arguments: /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment
-ludus_sccm_adkwinpesetup_creates_path: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\Windows Preinstallation Environment\\copype.cmd"
+
 
 

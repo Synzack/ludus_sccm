@@ -4,9 +4,6 @@
     name: Windows Update
     state: started
     start_mode: auto
-  tags:
-    - distro_sccm
-    - update
 
 - name: Disable Domain firewall
   community.windows.win_firewall:
@@ -19,31 +16,31 @@
 - name: Install Windows Features
   ansible.windows.win_feature:
     name:
-      - NET-Framework-Core
-      - NET-Framework-45-Core
       - RDC
-      - Web-WebServer
-      - Web-Common-Http
-      - Web-Dir-Browsing
-      - Web-Http-Errors
-      - Web-Static-Content
-      - Web-Default-Doc
-      - Web-Http-Redirect
-      - Web-Mgmt-Tools
-      - Web-Mgmt-Console
-      - Web-Mgmt-Compat
+      - Web-Server
+      - Web-ISAPI-Ext
+      - Web-Windows-Auth
       - Web-Metabase
       - Web-WMI
-      - Web-Windows-Auth
-      - Web-ISAPI-Ext
-      - Web-Scripting-Tools
-      - Web-Mgmt-Service
-      - BITS
-      - BITS-IIS-Ext
+      - WDS
+      - WDS-Deployment
+      - WDS-Transport
     state: present
-  tags:
-    - distro_sccm
-    - feature
+
+- name: Check if WDS Server was already Initialized
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer
+  register: wds_registry_check
+  
+- name: Initialize WDS Server
+  ansible.windows.win_shell: wdsutil /initialize-server /remInst:"C:\RemoteInstall"
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  when: not wds_registry_check.exists
 
 # Why do we have to do this lookup? Because if the user specified a hostname > 15 characters
 # Windows will truncate the comptuer name to the first 15 (plus a '$') and computer names

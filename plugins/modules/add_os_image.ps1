@@ -5,6 +5,7 @@ $spec = @{
     options = @{
         name = @{ type = 'str'; required = $true }
         site_code = @{ type = 'str'; required = $true }
+        path = @{ type = 'str'; required = $true }
     }
     supports_check_mode = $true
 }
@@ -21,26 +22,18 @@ if ((Get-PSDrive -Name $module.Params.site_code -PSProvider CMSite -ErrorAction 
 
 Set-Location "$($module.Params.site_code):\"
 
-#Query for NAA Account
-#https://www.oscc.be/sccm/configmgr/powershell/naa/Set-NAA-using-Powershell-in-CB/
-$component = gwmi -class SMS_SCI_ClientComp -Namespace "root\sms\site_$($module.Params.site_code)"  | Where-Object {$_.ItemName -eq "Software Distribution"}
-$props = $component.PropLists
-$prop = $props | where {$_.PropertyListName -eq "Network Access User Names"}
+$osExists = Get-CMOperatingSystemImage -Name $module.Params.name
 
-
-#Make CMAccount Network Access Account or Exit if Exists
-$exists = $module.Params.name -eq $prop.Values
-if($exists) {
+if($osExists) {
     $module.ExitJson()
 } else {
-    ##https://www.oscc.be/sccm/configmgr/powershell/naa/Set-NAA-using-Powershell-in-CB/
-    $new = [WmiClass] "root\sms\site_$($module.Params.site_code):SMS_EmbeddedPropertyList"
-    $embeddedpropertylist = $new.CreateInstance()
+    New-CMOperatingSystemImage -Name $module.Params.name -Path $module.Params.path
 
-    $embeddedpropertylist.PropertyListName = "Network Access User Names"
-    $embeddedpropertylist.Values = $module.Params.name
-    $component.PropLists = $embeddedpropertylist
-    $component.Put() | Out-Null
+    $DP = Get-CMDistributionPoint
+    $DP_FQDN = $DP.NetworkOSPath -replace "\\", ""
+
+    Start-CMContentDistribution -BootImageName "Boot image (x64)" -DistributionPointName $DP_FQDN
+    Start-CMContentDistribution -OperatingSystemImageName $module.Params.name -DistributionPointName $DP_FQDN
+
     $module.ExitJson()
 }
-

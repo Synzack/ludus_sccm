@@ -148,10 +148,10 @@ ludus:
     role_vars:
       ludus_sccm_sitecode: 123           
       ludus_sccm_sitename: Primary Site  
-      ludus_sccm_site_server_hostname: 'sccm-sitesrv'
-      ludus_sccm_distro_server_hostname: 'sccm-distro'
-      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'
-      ludus_sccm_sql_server_hostname: 'sccm-sql'
+      ludus_sccm_site_server_hostname: 'sccm-sitesrv'  
+      ludus_sccm_distro_server_hostname: 'sccm-distro' 
+      ludus_sccm_mgmt_server_hostname: 'sccm-mgmt'     
+      ludus_sccm_sql_server_hostname: 'sccm-sql'       
       # --------------------------NAA Account-------------------------------------------------
       ludus_sccm_configure_naa: true
       ludus_sccm_naa_username: 'sccm_naa'
@@ -164,7 +164,7 @@ ludus:
       ludus_sccm_enable_system_type_configuration_manager: true
       ludus_sccm_enable_system_type_server: true
       ludus_sccm_enable_system_type_workstation: true
-      ludus_sccm_install_client_to_domain_controller: false  # "true" Requires Remote Scheduled Tasks Management Firewall Enabled on the DCs (or no firewall)
+      ludus_sccm_install_client_to_domain_controller: false  #"True" Requires Remote Scheduled Tasks Managmenet firewall rules enabled (or no firewall)
       ludus_sccm_allow_NTLM_fallback: true
       # ---------------------------Discovery Methods------------------------------------------
       ludus_sccm_enable_active_directory_forest_discovery: true
@@ -173,6 +173,12 @@ ludus:
       ludus_sccm_enable_active_directory_group_discovery: true
       ludus_sccm_enable_active_directory_system_discovery: true
       ludus_sccm_enable_active_directory_user_discovery: true
+      # ----------------------------------PXE-------------------------------------------------
+      ludus_sccm_enable_pxe: true
+      ludus_enable_pxe_password: yes
+      ludus_pxe_password: 'Password123'
+      ludus_domain_join_account: domainadmin
+      ludus_domain_join_password: 'password'
 ```
 
 Then set the config and deploy it

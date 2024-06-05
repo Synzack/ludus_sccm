@@ -3,9 +3,9 @@
 
 $spec = @{
     options = @{
-        name = @{ type = 'str'; required = $true }
-        password = @{ type = 'str'; required = $true }
         site_code = @{ type = 'str'; required = $true }
+        toggle_password = @{ type = 'bool'; required = $true }
+        password = @{ type = 'str'; required = $true }
     }
     supports_check_mode = $true
 }
@@ -22,13 +22,16 @@ if ((Get-PSDrive -Name $module.Params.site_code -PSProvider CMSite -ErrorAction 
 
 Set-Location "$($module.Params.site_code):\"
 
-$account = Get-CMAccount -Username $module.Params.name
+$DP = Get-CMDistributionPoint
 
-if(-not $account) {
-    #https://learn.microsoft.com/en-us/powershell/module/configurationmanager/new-cmaccount?view=sccm-ps
-    $SecurePassword = ConvertTo-SecureString -String $module.Params.password -AsPlainText -Force
-    New-CMAccount -Name $module.Params.name -Password $SecurePassword -Sitecode $module.Params.site_code
+if($module.Params.toggle_password){
+    $password = ConvertTo-SecureString -String $module.Params.password -AsPlainText -Force
+
+    Set-CMDistributionPoint -InputObject $DP -PxePassword $password -EnablePXE $True -AllowPxeResponse $true -EnableUnknownComputerSupport $true -UserDeviceAffinity AllowWithAutomaticApproval
+
     $module.ExitJson()
 } else {
+    Set-CMDistributionPoint -InputObject $DP -EnablePXE $True -AllowPxeResponse $true -EnableUnknownComputerSupport $true -UserDeviceAffinity AllowWithAutomaticApproval 
+
     $module.ExitJson()
 }

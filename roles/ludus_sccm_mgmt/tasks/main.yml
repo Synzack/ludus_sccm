@@ -16,27 +16,16 @@
 - name: Install Windows Features
   ansible.windows.win_feature:
     name:
-      - NET-Framework-Core
+      - BITS
+      - BITS-IIS-Ext
       - NET-Framework-45-Core
-      - RDC
-      - Web-WebServer
-      - Web-Common-Http
-      - Web-Dir-Browsing
-      - Web-Http-Errors
-      - Web-Static-Content
-      - Web-Default-Doc
-      - Web-Http-Redirect
-      - Web-Mgmt-Tools
-      - Web-Mgmt-Console
+      - Web-App-Dev
+      - Web-ISAPI-Ext
+      - Web-Security
+      - Web-Windows-Auth
       - Web-Mgmt-Compat
       - Web-Metabase
       - Web-WMI
-      - Web-Windows-Auth
-      - Web-ISAPI-Ext
-      - Web-Scripting-Tools
-      - Web-Mgmt-Service
-      - BITS
-      - BITS-IIS-Ext
     state: present
 
 # Why do we have to do this lookup? Because if the user specified a hostname > 15 characters

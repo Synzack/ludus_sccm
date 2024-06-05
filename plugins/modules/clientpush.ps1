@@ -17,7 +17,9 @@ $spec = @{
 $module = [Ansible.Basic.AnsibleModule]::Create($args, $spec)
 
 Import-Module "C:\\Program Files (x86)\\Microsoft Configuration Manager\\AdminConsole\\bin\\ConfigurationManager.psd1"
+Import-Module ActiveDirectory
 
+#https://www.windows-noob.com/forums/topic/16422-connect-configmgr64-function-to-connect-to-cmsite-sccm-feedback-for-improvement/
 if ((Get-PSDrive -Name $module.Params.site_code -PSProvider CMSite -ErrorAction SilentlyContinue) -eq $null)
 {
     $ProviderMachineName = (Get-ItemProperty HKLM:\SOFTWARE\Wow6432Node\Microsoft\ConfigMgr10\AdminUI\Connection -Name Server).Server
@@ -28,6 +30,7 @@ Set-Location "$($module.Params.site_code):\"
 
 
 # Get Current Push Client Settings
+#https://github.com/insystemsco/scripts/blob/master/document-cmdb.ps1#L2367
 $currentPushSettings = Get-CMClientPushInstallation
 $PropList = $currentPushSettings.PropLists
 $currentPushAccountSettings = $PropList | ? { $_.PropertyListName -eq "Reserved2"}
@@ -44,6 +47,4 @@ if($accountExists) {
     Set-CMClientPushInstallation -SiteCode $module.Params.site_code -ChosenAccount $module.Params.name -EnableAutomaticClientPushInstallation $module.Params.ludus_sccm_enable_automatic_client_push_installation -EnableSystemTypeConfigurationManager $module.Params.ludus_sccm_enable_system_type_configuration_manager -EnableSystemTypeServer $module.Params.ludus_sccm_enable_system_type_server -EnableSystemTypeWorkstation $module.Params.ludus_sccm_enable_system_type_workstation -InstallClientToDomainController $module.Params.ludus_sccm_install_client_to_domain_controller -AllownNTLMFallback $module.Params.ludus_sccm_allow_NTLM_fallback
 }
 
-# Set Properties
-# $props = $currentPushSettings.Props
 $module.ExitJson()
