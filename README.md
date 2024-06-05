@@ -205,9 +205,9 @@ ludus ansible collection add http://<network ip>/synzack-ludus_sccm-1.0.0.tar.gz
 
 via scp
 ```
-export LUDUS_USER_NANE=$(ludus user list --json | jq -r '.[].proxmoxUsername')
-ssh root@<ludus-host> "mkdir -r /opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm"
-rsync -av --exclude .git/ ./ root@<ludus-host>:/opt/ludus/users/$LUDUS_USER_NANE/.ansible/collections/ansible_collections/synzack/ludus_sccm/
+export LUDUS_USER_NAME=$(ludus user list --json | jq -r '.[].proxmoxUsername')
+ssh root@<ludus-host> "mkdir -r /opt/ludus/users/$LUDUS_USER_NAME/.ansible/collections/ansible_collections/synzack/ludus_sccm"
+rsync -av --exclude .git/ ./ root@<ludus-host>:/opt/ludus/users/$LUDUS_USER_NAME/.ansible/collections/ansible_collections/synzack/ludus_sccm/
 ```
 
 ## License
