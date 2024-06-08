@@ -54,7 +54,7 @@ ludus_sccm_system_management_template: SystemManagement.ps1.j2
 ludus_sccm_win_sccm_config_default_template: ConfigMgrSetup.ini.j2
 ludus_sccm_win_sccm_config_default_prereq_path: C:\SCCM 
 
-ludus_sccm_configmgr_url: https://go.microsoft.com/fwlink/p/?LinkID=2195628&clcid=0x409&culture=en-us&country=us
+ludus_sccm_configmgr_url: https://download.microsoft.com/download/0/0/1/001d97e2-c427-4d4b-ad30-1556ee0ff1b0/MCM_Configmgr_2303.exe
 
 #https://gist.github.com/dansonnenburg/73a2c54d05e03622b9d968e817af89b6
 ludus_sccm_adksetup_url: https://download.microsoft.com/download/0/1/C/01CC78AA-B53B-4884-B7EA-74F2878AA79F/adk/adksetup.exe
