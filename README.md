@@ -1,3 +1,8 @@
+# What's New
+### Version 1.0.2
+- Updated SQL download link to SQL Server 2022 Eval due to breaks in [Takeover 1](https://github.com/subat0mik/Misconfiguration-Manager/blob/main/attack-techniques/TAKEOVER/TAKEOVER-1/takeover-1_description.md) authentication
+- To update your cache, please remove "*enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso*" from the directory at ***/opt/ludus/resources/sccm/*** on your Ludus host, destroy, and rebuild the lab
+
 # SCCM Collection for Ansible and [Ludus](https://ludus.cloud)
 
 This collection includes Ansible roles to install and configure SCCM. For a good example of the collection's usage, see the `sccm-range-config.yml`.
