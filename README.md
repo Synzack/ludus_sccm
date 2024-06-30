@@ -17,7 +17,7 @@ Roles included in this collection:
   - `synzack.ludus_sccm.ludus_sccm_siteserver`
   - `synzack.ludus_sccm.ludus_sccm_sql`
 
-## Installation in [Ludus](ludus.cloud)
+## Installation in [Ludus](https://ludus.cloud)
 
 Install via Ansible Galaxy:
 
