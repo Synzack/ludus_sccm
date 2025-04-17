@@ -184,7 +184,8 @@ ludus:
       ludus_pxe_password: 'Password123'
       ludus_domain_join_account: domainadmin
       ludus_domain_join_password: 'password'
-```
+      # Only define ludus_sccm_win11_iso_path if you are not using `local` as your ISO storage pool!
+      ludus_sccm_win11_iso_path: '/full/path/on/Ludus_host/to/22621.525.220925-0207.ni_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso'
 
 Then set the config and deploy it
 

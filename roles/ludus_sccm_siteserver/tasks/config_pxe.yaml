@@ -21,11 +21,30 @@
     path: "{{ ludus_sccm_host_path }}\\win11.iso"
   register: file_host_check
 
-- name: Copy ISO file to Site Server
+- name: Copy ISO file to Site Server from local storage pool
   ansible.windows.win_copy:
     src: "/var/lib/vz/template/iso/22621.525.220925-0207.ni_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso"
     dest: "{{ ludus_sccm_host_path }}\\win11.iso"
-  when: not file_host_check.stat.exists
+  when:
+    - not file_host_check.stat.exists
+    - proxmox_iso_storage_pool == "local"
+
+- name: Stop if we don't have a path to the ISO file and we are not using the local storage pool
+  ansible.builtin.fail:
+    msg: "You are not using the local storage pool so you must provide the full path to the Win11 ISO file as a variable: ludus_sccm_win11_iso_path"
+  when:
+    - proxmox_iso_storage_pool != "local"
+    - (ludus_sccm_win11_iso_path is not defined or ludus_sccm_win11_iso_path == "")
+
+- name: Copy ISO file to Site Server from custom path
+  ansible.windows.win_copy:
+    src: "{{ ludus_sccm_win11_iso_path }}"
+    dest: "{{ ludus_sccm_host_path }}\\win11.iso"
+  when:
+    - not file_host_check.stat.exists
+    - proxmox_iso_storage_pool != "local"
+    - ludus_sccm_win11_iso_path is defined
+    - ludus_sccm_win11_iso_path != ""
 
 - name: Check if WIM File Exists on Site Server
   ansible.windows.win_stat:
