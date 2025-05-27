@@ -58,7 +58,6 @@ ludus_sccm_configmgr_url: https://download.microsoft.com/download/0/0/1/001d97e2
 
 #https://gist.github.com/dansonnenburg/73a2c54d05e03622b9d968e817af89b6
 ludus_sccm_adksetup_url: https://download.microsoft.com/download/2/d/9/2d9c8902-3fcd-48a6-a22a-432b08bed61e/ADK/adksetup.exe
-ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/D/7/E/D7E22261-D0B3-4ED6-8151-5E002C7F823D/adkwinpeaddons/adkwinpesetup.exe
-
+ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/17ac4263-5816-4f1b-8131-87c4d5a3331f/adkwinpeaddons/adkwinpesetup.exe
 
 
