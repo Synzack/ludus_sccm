@@ -52,7 +52,7 @@ ludus_domain_join_password: 'password'
 ludus_sccm_system_management_template: SystemManagement.ps1.j2
 
 ludus_sccm_win_sccm_config_default_template: ConfigMgrSetup.ini.j2
-ludus_sccm_win_sccm_config_default_prereq_path: C:\SCCM 
+ludus_sccm_win_sccm_config_default_prereq_path: C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64
 
 ludus_sccm_configmgr_url: https://download.microsoft.com/download/0/0/1/001d97e2-c427-4d4b-ad30-1556ee0ff1b0/MCM_Configmgr_2303.exe
 

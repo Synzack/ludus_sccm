@@ -57,12 +57,12 @@
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
 - name: Template ConfigMgrSetup.ini
-  ansible.windows.win_template:
+  ansible.builtin.template:
     src: "{{ ludus_sccm_win_sccm_config_default_template }}"
     dest: "C:\\ludus\\sccm\\ConfigMgrSetup.ini"
 
 - name: Template SystemManagement.ps1
-  ansible.windows.win_template:
+  ansible.builtin.template:
     src: "{{ ludus_sccm_system_management_template }}"
     dest: "C:\\ludus\\sccm\\SystemManagement.ps1"
 
