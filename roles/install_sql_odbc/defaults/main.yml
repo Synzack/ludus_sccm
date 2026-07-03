@@ -1,0 +1,22 @@
+---
+ludus_install_directory: /opt/ludus
+
+# Where the driver MSIs are staged on the Windows host
+ludus_sccm_odbc_host_path: 'C:\ludus\sccm\sqldrivers'
+
+# Microsoft ODBC Driver 18 for SQL Server (x64) — SCCM/SQL client prerequisite.
+# fwlink always redirects to the latest 18.x GA release (currently 18.6.2.1).
+ludus_sccm_install_odbc: true
+ludus_sccm_odbc_url: 'https://go.microsoft.com/fwlink/?linkid=2358430'
+ludus_sccm_odbc_file: 'msodbcsql18.msi'
+
+# Microsoft OLE DB Driver 19 for SQL Server (MSOLEDBSQL, x64) — required by the
+# ConfigMgr site server / SQL prerequisite checks. fwlink tracks the latest 19.x GA (19.4.2).
+ludus_sccm_install_msoledbsql: true
+ludus_sccm_msoledbsql_url: 'https://go.microsoft.com/fwlink/?linkid=2364027'
+ludus_sccm_msoledbsql_file: 'msoledbsql19.msi'
+
+# Optional per-file checksums (e.g. "sha256:...") for the host-side download. Left empty
+# because the fwlinks track the latest release; pin the URLs + set these for reproducibility.
+ludus_sccm_odbc_checksum: ''
+ludus_sccm_msoledbsql_checksum: ''

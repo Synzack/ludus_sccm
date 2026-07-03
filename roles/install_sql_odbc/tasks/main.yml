@@ -1,0 +1,76 @@
+---
+# Installs the Microsoft SQL Server client drivers that ConfigMgr (and SQL clients)
+# require: the ODBC Driver 18 for SQL Server and the OLE DB Driver (MSOLEDBSQL).
+# Follows the collection's pattern: cache the installer on the Ludus host, copy it to
+# the Windows VM, then install silently with the license terms accepted.
+
+- name: Build the list of SQL drivers to install
+  ansible.builtin.set_fact:
+    _ludus_sccm_sql_drivers: >-
+      {{
+        ([{'name': 'Microsoft ODBC Driver 18 for SQL Server',
+           'url': ludus_sccm_odbc_url,
+           'file': ludus_sccm_odbc_file,
+           'checksum': ludus_sccm_odbc_checksum,
+           'args': 'IACCEPTMSODBCSQLLICENSETERMS=YES /norestart'}]
+          if (ludus_sccm_install_odbc | bool) else [])
+        +
+        ([{'name': 'Microsoft OLE DB Driver for SQL Server',
+           'url': ludus_sccm_msoledbsql_url,
+           'file': ludus_sccm_msoledbsql_file,
+           'checksum': ludus_sccm_msoledbsql_checksum,
+           'args': 'IACCEPTMSOLEDBSQLLICENSETERMS=YES /norestart'}]
+          if (ludus_sccm_install_msoledbsql | bool) else [])
+      }}
+
+- name: Cache the SQL driver installers on the Ludus host
+  run_once: true
+  block:
+    - name: Create the Ludus resources directory if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ ludus_install_directory }}/resources/sccm"
+        state: directory
+        recurse: true
+      delegate_to: localhost
+
+    - name: Download the SQL driver installers to the Ludus host
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "{{ ludus_install_directory }}/resources/sccm/{{ item.file }}"
+        checksum: "{{ item.checksum if (item.checksum | length > 0) else omit }}"
+        mode: "660"
+      delegate_to: localhost
+      loop: "{{ _ludus_sccm_sql_drivers }}"
+      loop_control:
+        label: "{{ item.file }}"
+
+- name: Create the driver staging directory on the Windows host
+  ansible.windows.win_file:
+    path: "{{ ludus_sccm_odbc_host_path }}"
+    state: directory
+
+- name: Copy the SQL driver installers to the Windows host
+  ansible.windows.win_copy:
+    src: "{{ ludus_install_directory }}/resources/sccm/{{ item.file }}"
+    dest: "{{ ludus_sccm_odbc_host_path }}\\{{ item.file }}"
+  loop: "{{ _ludus_sccm_sql_drivers }}"
+  loop_control:
+    label: "{{ item.file }}"
+
+- name: Install the SQL Server client drivers (ODBC + OLE DB)
+  ansible.windows.win_package:
+    path: "{{ ludus_sccm_odbc_host_path }}\\{{ item.file }}"
+    arguments: "{{ item.args }}"
+    state: present
+  loop: "{{ _ludus_sccm_sql_drivers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: _ludus_sccm_sql_driver_install
+
+- name: Reboot if a driver install requested it
+  ansible.windows.win_reboot:
+  when: >-
+    _ludus_sccm_sql_driver_install.results
+    | selectattr('reboot_required', 'defined')
+    | selectattr('reboot_required')
+    | list | length > 0
