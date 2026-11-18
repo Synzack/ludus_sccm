@@ -52,9 +52,38 @@ ludus_domain_join_password: 'password'
 ludus_sccm_system_management_template: SystemManagement.ps1.j2
 
 ludus_sccm_win_sccm_config_default_template: ConfigMgrSetup.ini.j2
-ludus_sccm_win_sccm_config_default_prereq_path: C:\SCCM 
+ludus_sccm_win_sccm_config_default_prereq_path: '{{ ludus_sccm_media_path }}\Prerequisites'
 
-ludus_sccm_configmgr_url: https://download.microsoft.com/download/0/0/1/001d97e2-c427-4d4b-ad30-1556ee0ff1b0/MCM_Configmgr_2303.exe
+ludus_sccm_configmgr_url: https://download.microsoft.com/download/50e53030-0fcb-4076-8808-676c79a0ed9f/ConfigMgr_2509.exe
 
-ludus_sccm_adksetup_url: https://download.microsoft.com/download/e/8/b/e8bec6c1-8153-408d-96b1-ee2985a600ad/adk/adksetup.exe
-ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/17ac4263-5816-4f1b-8131-87c4d5a3331f/adkwinpeaddons/adkwinpesetup.exe
+ludus_sccm_adksetup_url: https://download.microsoft.com/download/8e0c0f5a-abb5-4358-a51b-168eb40b1590/adk/adksetup.exe
+ludus_sccm_adkwinpesetup_url: https://download.microsoft.com/download/a4a79e7a-f085-41c4-aebf-2538fd000790/adkwinpeaddons/adkwinpesetup.exe
+# A release has its own controller cache, guest downloads and extraction directory.
+ludus_sccm_version: '2509'
+ludus_sccm_expected_build: 9141
+ludus_sccm_configmgr_filename: ConfigMgr_2509.exe
+ludus_sccm_media_path: '{{ ludus_sccm_host_path }}\{{ ludus_sccm_version }}'
+ludus_sccm_cache_namespace: '{{ ludus_sccm_version }}'
+ludus_sccm_adk_version: '10.1.26100.9457'
+ludus_sccm_adk_build: 26100
+ludus_sccm_enhanced_http: true
+ludus_sccm_install_service_connection_point: true
+ludus_sccm_scp_use_proxy: false
+ludus_sccm_scp_proxy_name: ''
+ludus_sccm_scp_proxy_port: 8080
+ludus_sccm_scp_proxy_account: '' # Existing registered CM account, e.g. DOMAIN\proxyservice
+ludus_sccm_sql_compatibility_level: 150
+
+ludus_sccm_sevenzip_filename: 7z2606-x64.exe
+ludus_sccm_sevenzip_url: https://github.com/ip7z/7zip/releases/download/26.06/7z2606-x64.exe
+# Optional authenticated proxy for ADK and setup prerequisite downloads.
+# This configures the installer account's WinINET settings, not a proxy password.
+ludus_sccm_setup_proxy_server: ''
+ludus_sccm_setup_proxy_bypass: '<local>;10.*;127.*;*.{{ ludus_domain_fqdn }}'
+
+# Optional offline source for .NET 3.5, still required by the setup bootstrapper.
+# Supply a controller ISO path, or an existing guest sources/sxs directory.
+ludus_sccm_windows_iso_path: ''
+ludus_sccm_windows_feature_source: ''
+ludus_sccm_controller_sevenzip_url: https://github.com/ip7z/7zip/releases/download/26.06/7z2606-linux-x64.tar.xz
+ludus_sccm_controller_sevenzip_checksum: sha256:2b539cf067b2ad48e1baa5093dbaa8818b73542d1222a0ffde9dc5f2922ea62e

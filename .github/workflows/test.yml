@@ -1,0 +1,29 @@
+name: Validate 2509 provisioning
+on:
+  pull_request:
+  push:
+    branches: ['feature/sccm-2509']
+  workflow_dispatch:
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install ansible-core==2.16.12 pytest PyYAML
+      - run: pytest -q tests/test_configuration.py
+      - run: ansible-galaxy collection build --output-path /tmp/collection
+      - run: ansible-galaxy collection install ansible.windows:2.7.0 community.windows:2.3.0 microsoft.ad:1.8.0 -p /tmp/collections
+      - run: ansible-galaxy collection install /tmp/collection/*.tar.gz --no-deps -p /tmp/collections
+      - run: ansible-playbook -i localhost, tests/syntax.yml --syntax-check
+        env:
+          ANSIBLE_COLLECTIONS_PATH: /tmp/collections
+  windows-guards:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test version guards on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/Test-VersionGuards.ps1

@@ -1,142 +1,218 @@
 ---
-- name: Get adksetup.exe
-  ansible.builtin.include_tasks:
-    file: download_file.yml
-  vars:
-    ludus_sccm_file_name: adksetup.exe
-    ludus_sccm_url: "{{ ludus_sccm_adksetup_url }}"
-    ludus_sccm_host_path: "C:\\ludus\\sccm"
+- name: Validate requested site configuration
+  ansible.builtin.assert:
+    that:
+      - ludus_sccm_sitecode | string is match('^[A-Za-z0-9]{3}$')
+      - ludus_sccm_expected_build | int > 0
+      - not ludus_sccm_scp_use_proxy or ludus_sccm_scp_proxy_name | length > 0
+    fail_msg: Supply a three-character site code, expected build and proxy hostname when proxying the service connection point.
 
-- name: Get adkwinpesetup.exe
-  ansible.builtin.include_tasks:
-    file: download_file.yml
-  vars:
-    ludus_sccm_file_name: adkwinpesetup.exe
-    ludus_sccm_url: "{{ ludus_sccm_adkwinpesetup_url }}"
-    ludus_sccm_host_path: "C:\\ludus\\sccm"
+- name: Read installed Configuration Manager version
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Get-SiteState.ps1') }}"
+    parameters:
+      SiteCode: '{{ ludus_sccm_sitecode }}'
+      ExpectedBuild: '{{ ludus_sccm_expected_build | int }}'
+  register: sccm_site_state
 
-- name: Install adksetup.exe
-  ansible.windows.win_command: 'C:\ludus\sccm\adksetup.exe /quiet /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool'
-  args:
-    creates: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\User State Migration Tool\\amd64\\cmi2migxml.dll"
+- name: Install requested site on a fresh server
+  when: not sccm_site_state.result.installed
   vars:
     ansible_become: true
     ansible_become_method: runas
     ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+    ansible_become_flags: logon_type=interactive logon_flags=with_profile
+  block:
+    - name: Configure installer account proxy when requested
+      ansible.windows.win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings
+        name: '{{ item.name }}'
+        data: '{{ item.data }}'
+        type: '{{ item.type }}'
+      loop:
+        - {name: ProxyEnable, data: 1, type: dword}
+        - {name: ProxyServer, data: '{{ ludus_sccm_setup_proxy_server }}', type: string}
+        - {name: ProxyOverride, data: '{{ ludus_sccm_setup_proxy_bypass }}', type: string}
+      when: ludus_sccm_setup_proxy_server | length > 0
 
-- name: Install adkwinpesetup
-  ansible.windows.win_command: 'C:\ludus\sccm\adkwinpesetup.exe /quiet /ceip off /features OptionId.WindowsPreinstallationEnvironment'
-  args:
-    creates: "C:\\Program Files (x86)\\Windows Kits\\10\\Assessment and Deployment Kit\\Windows Preinstallation Environment\\MakeWinPEMedia.cmd"
+    - name: Test authenticated installer download access
+      ansible.windows.win_powershell:
+        script: |
+          param([string]$Proxy, [string]$Url)
+          $ErrorActionPreference = 'Stop'
+          $Ansible.Changed = $false
+          $response = Invoke-WebRequest -UseBasicParsing -Method Head -Uri $Url -Proxy "http://$Proxy" -ProxyUseDefaultCredentials -TimeoutSec 60
+          $Ansible.Result = @{ status = [int]$response.StatusCode }
+        parameters:
+          Proxy: '{{ ludus_sccm_setup_proxy_server }}'
+          Url: '{{ ludus_sccm_adksetup_url }}'
+      when: ludus_sccm_setup_proxy_server | length > 0
+
+    - name: Download extraction tool on the controller
+      ansible.builtin.include_tasks: download_file.yml
+      vars:
+        ludus_sccm_file_name: '{{ ludus_sccm_sevenzip_filename }}'
+        ludus_sccm_url: '{{ ludus_sccm_sevenzip_url }}'
+
+    - name: Install 7-Zip for evaluation media extraction
+      ansible.windows.win_package:
+        path: '{{ ludus_sccm_media_path }}\{{ ludus_sccm_sevenzip_filename }}'
+        arguments: /S
+        creates_path: 'C:\Program Files\7-Zip\7z.exe'
+
+    - name: Cache supported ADK installers
+      ansible.builtin.include_tasks: download_file.yml
+      vars:
+        ludus_sccm_file_name: '{{ item.filename }}'
+        ludus_sccm_url: '{{ item.url }}'
+        ludus_sccm_cache_namespace: 'adk-{{ ludus_sccm_adk_version }}'
+        ludus_sccm_download_path: '{{ ludus_sccm_host_path }}\adk-{{ ludus_sccm_adk_version }}'
+      loop:
+        - {filename: adksetup.exe, url: '{{ ludus_sccm_adksetup_url }}'}
+        - {filename: adkwinpesetup.exe, url: '{{ ludus_sccm_adkwinpesetup_url }}'}
+
+    - name: Reject an incompatible existing Windows ADK
+      ansible.windows.win_powershell:
+        script: "{{ lookup('file', role_path ~ '/files/Test-Adk.ps1') }}"
+        parameters:
+          ExpectedBuild: '{{ ludus_sccm_adk_build | int }}'
+
+    - name: Install supported Windows ADK
+      ansible.windows.win_package:
+        path: '{{ ludus_sccm_host_path }}\adk-{{ ludus_sccm_adk_version }}\adksetup.exe'
+        arguments: /quiet /norestart /ceip off /features OptionId.DeploymentTools OptionId.UserStateMigrationTool
+        creates_path: 'C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM\dism.exe'
+        expected_return_code: [0, 3010]
+      register: sccm_adk_install
+
+    - name: Install supported Windows PE add-on
+      ansible.windows.win_package:
+        path: '{{ ludus_sccm_host_path }}\adk-{{ ludus_sccm_adk_version }}\adkwinpesetup.exe'
+        arguments: /quiet /norestart /ceip off /features OptionId.WindowsPreinstallationEnvironment
+        creates_path: 'C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment\amd64\en-us\winpe.wim'
+        expected_return_code: [0, 3010]
+      register: sccm_winpe_install
+
+    - name: Reboot after ADK installation when required
+      ansible.windows.win_reboot:
+      when: sccm_adk_install.reboot_required | default(false) or sccm_winpe_install.reboot_required | default(false)
+
+    - name: Verify installed ADK and WinPE versions
+      ansible.windows.win_powershell:
+        script: "{{ lookup('file', role_path ~ '/files/Test-Adk.ps1') }}"
+        parameters:
+          ExpectedBuild: '{{ ludus_sccm_adk_build | int }}'
+          RequireInstalled: true
+
+    - name: Download Configuration Manager media
+      ansible.builtin.include_tasks: download_file.yml
+      vars:
+        ludus_sccm_file_name: '{{ ludus_sccm_configmgr_filename }}'
+        ludus_sccm_url: '{{ ludus_sccm_configmgr_url }}'
+
+    - name: Extract release media using 7-Zip
+      ansible.windows.win_powershell:
+        script: |
+          param([string]$MediaPath, [string]$Filename)
+          $ErrorActionPreference = 'Stop'
+          $Ansible.Changed = $false
+          $existing = @(Get-ChildItem -LiteralPath $MediaPath -Filter setup.exe -Recurse -File |
+            Where-Object { $_.FullName -match '\\SMSSETUP\\BIN\\X64\\setup\.exe$' })
+          if ($existing.Count -eq 0) {
+            $sevenZip = @("$env:ProgramFiles\7-Zip\7z.exe", 'C:\ProgramData\chocolatey\bin\7z.exe') |
+              Where-Object { Test-Path $_ } | Select-Object -First 1
+            if (-not $sevenZip) { throw 'Install 7-Zip (Ludus additional-tools) before extracting Microsoft evaluation media.' }
+            & $sevenZip x (Join-Path $MediaPath $Filename) "-o$MediaPath" -y | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "7-Zip failed with exit code $LASTEXITCODE" }
+            $Ansible.Changed = $true
+          }
+        parameters:
+          MediaPath: '{{ ludus_sccm_media_path }}'
+          Filename: '{{ ludus_sccm_configmgr_filename }}'
+
+    - name: Resolve and validate extracted setup
+      ansible.windows.win_powershell:
+        script: "{{ lookup('file', role_path ~ '/files/Find-SetupMedia.ps1') }}"
+        parameters:
+          MediaPath: '{{ ludus_sccm_media_path }}'
+          ExpectedBuild: '{{ ludus_sccm_expected_build | int }}'
+      register: sccm_setup_media
+
+    - name: Template setup answer file
+      ansible.windows.win_template:
+        src: '{{ ludus_sccm_win_sccm_config_default_template }}'
+        dest: '{{ ludus_sccm_media_path }}\ConfigMgrSetup.ini'
+
+    - name: Template System Management configuration
+      ansible.windows.win_template:
+        src: '{{ ludus_sccm_system_management_template }}'
+        dest: '{{ ludus_sccm_media_path }}\SystemManagement.ps1'
+
+    - name: Create prerequisite download directory
+      ansible.windows.win_file:
+        path: '{{ ludus_sccm_win_sccm_config_default_prereq_path }}'
+        state: directory
+
+    - name: Create System Management container and permissions
+      ansible.windows.win_shell: '& "{{ ludus_sccm_media_path }}\SystemManagement.ps1"'
+
+    - name: Extend Active Directory schema
+      ansible.windows.win_command:
+        argv:
+          - '{{ sccm_setup_media.result.root }}\SMSSETUP\BIN\X64\extadsch.exe'
+      register: sccm_schema
+      failed_when: sccm_schema.rc != 0
+
+    - name: Verify SQL Server connectivity before setup
+      ansible.windows.win_wait_for:
+        host: '{{ ludus_sccm_sql_server_hostname }}'
+        port: 1433
+        timeout: 30
+
+    - name: Install Configuration Manager and check setup exit code
+      ansible.windows.win_powershell:
+        script: "{{ lookup('file', role_path ~ '/files/Invoke-SiteSetup.ps1') }}"
+        parameters:
+          Setup: '{{ sccm_setup_media.result.setup }}'
+          AnswerFile: '{{ ludus_sccm_media_path }}\ConfigMgrSetup.ini'
+
+    - name: Restart after site installation
+      ansible.windows.win_reboot:
+        reboot_timeout: 1800
+
+- name: Verify the requested site version through the SMS Provider
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Test-SiteVersion.ps1') }}"
+    parameters:
+      SiteCode: '{{ ludus_sccm_sitecode }}'
+      ExpectedBuild: '{{ ludus_sccm_expected_build | int }}'
   vars:
     ansible_become: true
     ansible_become_method: runas
     ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+    ansible_become_flags: logon_type=interactive logon_flags=with_profile
+  register: sccm_verified_site
+  until: sccm_verified_site is succeeded
+  retries: 20
+  delay: 30
 
-- name: Get Configmgr_2023
-  ansible.builtin.include_tasks:
-    file: download_file.yml
-  vars:
-    ludus_sccm_file_name: MCM_Configmgr_2303.exe
-    ludus_sccm_url: "{{ ludus_sccm_configmgr_url }}"
-    ludus_sccm_host_path: "C:\\ludus\\sccm"
-
-- name: Unzip Setup
-  ansible.windows.win_command: 'C:\ludus\sccm\MCM_Configmgr_2303.exe /s -dC:\ludus\sccm'
-  args:
-    creates: C:\ludus\sccm\cd.retail.LN
-  vars:
-    ansible_become: true
-    ansible_become_method: runas
-    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
-    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
-
-- name: Template ConfigMgrSetup.ini
-  ansible.windows.win_template:
-    src: "{{ ludus_sccm_win_sccm_config_default_template }}"
-    dest: "C:\\ludus\\sccm\\ConfigMgrSetup.ini"
-
-- name: Template SystemManagement.ps1
-  ansible.windows.win_template:
-    src: "{{ ludus_sccm_system_management_template }}"
-    dest: "C:\\ludus\\sccm\\SystemManagement.ps1"
-
-- name: Create SCCM pre-req folder
-  ansible.windows.win_file:
-    path: "{{ ludus_sccm_win_sccm_config_default_prereq_path }}"
-    state: directory
-
-- name: Create System Management Container and Configure Permissions
-  ansible.windows.win_shell: |
-   C:\ludus\sccm\SystemManagement.ps1
+- name: Configure supported SQL compatibility and enhanced HTTP
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Configure-Site.ps1') }}"
+    parameters:
+      SiteCode: '{{ ludus_sccm_sitecode }}'
+      SqlServer: '{{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}'
+      EnhancedHttp: '{{ ludus_sccm_enhanced_http | bool }}'
+      CompatibilityLevel: '{{ ludus_sccm_sql_compatibility_level | int }}'
+  register: sccm_site_configuration
+  until: sccm_site_configuration is succeeded
+  retries: 10
+  delay: 30
   vars:
     ansible_become: true
     ansible_become_method: runas
     ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
-
-- name: Extend Schema
-  ansible.windows.win_shell: |
-   C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64\extadsch.exe
-  vars:
-    ansible_become: true
-    ansible_become_method: runas
-    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
-    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
-
-# This prevents waiting hours for SCCM setup to fail if the MSSQL server is not up
-- name: Fail if the SQL server is not reachable
-  ansible.windows.win_wait_for:
-    host: "{{ ludus_sccm_sql_server_hostname }}"
-    port: 1433
-    state: started
-    timeout: 5
-
-- name: Setup SCCM - This will take a long time, be patient
-  ansible.windows.win_shell: |
-   C:\ludus\sccm\cd.retail.LN\SMSSETUP\BIN\X64\setup.exe /script C:\ludus\sccm\ConfigMgrSetup.ini
-  register: setup_configmgr
-  vars:
-    ansible_become: true
-    ansible_become_method: runas
-    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
-    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
-    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
-  args:
-    creates: "C:\\Program Files\\Microsoft Configuration Manager\\install.map"
-
-- name: Check for success
-  ansible.windows.win_stat:
-    path: "C:\\Program Files\\Microsoft Configuration Manager\\install.map"
-  register: install_files
-
-- name: Get SCCM error log
-  ansible.builtin.slurp:
-    src: "C:\\ConfigMgrSetup.log"
-  register: configmgrsetup_log
-  when: not install_files.stat.exists
-
-- name: Reboot after SCCM error (allows for Setup to run again)
-  ansible.windows.win_reboot:
-  when: not install_files.stat.exists
-
-- name: Show ConfigMgrSetup.log
-  ansible.builtin.debug:
-    msg: "{{ configmgrsetup_log['content'] | b64decode }}"
-  when: not install_files.stat.exists
-
-- name: Fail ansible on failed install
-  ansible.builtin.fail:
-    msg: "SCCM failed to install. Check the log output above for details."
-  when: not install_files.stat.exists
-
-- name: Reboot after SCCM site installation
-  ansible.windows.win_reboot:
-  when: setup_configmgr.changed and install_files.stat.exists
+    ansible_become_flags: logon_type=interactive logon_flags=with_profile

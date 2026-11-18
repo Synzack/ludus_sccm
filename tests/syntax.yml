@@ -1,0 +1,19 @@
+- hosts: all
+  gather_facts: false
+  tasks:
+  - ansible.builtin.import_role:
+      name: synzack.ludus_sccm.ludus_sccm_siteserver
+  - ansible.builtin.import_role:
+      name: synzack.ludus_sccm.ludus_sccm_sql
+  - ansible.builtin.import_role:
+      name: synzack.ludus_sccm.ludus_sccm_mgmt
+  - ansible.builtin.import_role:
+      name: synzack.ludus_sccm.ludus_sccm_distro
+  - ansible.builtin.import_role:
+      name: synzack.ludus_sccm.ludus_sccm_prerequisites
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_siteserver/tasks/install_sccm.yml
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_siteserver/tasks/download_file.yml
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_siteserver/tasks/config_pxe.yaml
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_siteserver/tasks/discovery_methods.yml
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_sql/tasks/config_sql.yml
+  - ansible.builtin.import_tasks: ../roles/ludus_sccm_siteserver/tasks/windows_feature_source.yml

@@ -1,4 +1,10 @@
 # What's New
+### Version 1.1.0-dev.2509
+- Fresh Configuration Manager 2509 evaluation provisioning with SQL Server 2022 and Windows Server 2022.
+- Updated ADK, WinPE and runtime prerequisites, release-specific installer caches, and installed-version checks.
+- Enhanced HTTP and SQL compatibility level 150, with existing client push, NAA and PXE configuration switches retained.
+- Optional installer and service connection point proxy support, disabled by default.
+
 ### Version 1.0.2
 - Updated SQL download link to SQL Server 2022 Eval due to breaks in [Takeover 1](https://github.com/subat0mik/Misconfiguration-Manager/blob/main/attack-techniques/TAKEOVER/TAKEOVER-1/takeover-1_description.md) authentication
 - To update your cache, please remove "*enu_sql_server_2022_standard_edition_x64_dvd_43079f69.iso*" from the directory at ***/opt/ludus/resources/sccm/*** on your Ludus host, destroy, and rebuild the lab
@@ -6,6 +12,8 @@
 # SCCM Collection for Ansible and [Ludus](https://ludus.cloud)
 
 This collection includes Ansible roles to install and configure SCCM. For a good example of the collection's usage, see the `sccm-range-config.yml`.
+
+See the [2509 configuration guide](docs/2509.md) for prerequisites, optional proxy settings, and offline feature sources.
 
 Roles included in this collection:
 
@@ -27,7 +35,7 @@ ludus ansible collection add synzack.ludus_sccm
 
 ### Role Requirements
 
-None
+The collection declares its Ansible collection dependencies in `galaxy.yml`. See the [2509 configuration guide](docs/2509.md) for operating-system, SQL, and installer prerequisites.
 
 ## Notes
 * Due to unknown issues with SCCM, *.local* domain suffixes will not work properly. We recommend using something else such as *.domain* or *.lab* for your domain suffix
@@ -100,8 +108,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 13
-    ram_gb: 4
-    ram_min_gb: 1
+    ram_gb: 10
+    ram_min_gb: 8
     cpus: 4
     windows:
       sysprep: true
@@ -139,8 +147,8 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 15
-    ram_gb: 4
-    ram_min_gb: 1
+    ram_gb: 6
+    ram_min_gb: 4
     cpus: 4
     windows:
       sysprep: true

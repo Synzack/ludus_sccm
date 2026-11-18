@@ -1,0 +1,115 @@
+---
+- name: Check whether the legacy setup framework is enabled
+  ansible.windows.win_powershell:
+    script: |
+      $Ansible.Changed = $false
+      $Ansible.Result = @{ installed = [bool](Get-WindowsFeature NET-Framework-Core).Installed }
+  register: sccm_netfx3
+
+- name: Prepare offline Windows feature payloads when supplied
+  when:
+    - not sccm_netfx3.result.installed
+    - ludus_sccm_windows_iso_path | length > 0
+  block:
+    - name: Identify the supplied Windows Server ISO
+      ansible.builtin.stat:
+        path: '{{ ludus_sccm_windows_iso_path }}'
+        checksum_algorithm: sha256
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+      register: sccm_windows_iso
+
+    - name: Require a readable Windows Server ISO
+      ansible.builtin.assert:
+        that:
+          - sccm_windows_iso.stat.exists
+          - sccm_windows_iso.stat.checksum is defined
+        fail_msg: Supply the controller path to Windows Server media matching the guest OS.
+
+    - name: Choose a cache unique to the Windows media contents
+      ansible.builtin.set_fact:
+        sccm_windows_source_cache: '{{ ludus_install_directory }}/resources/sccm/windows-{{ sccm_windows_iso.stat.checksum[:12] }}'
+        sccm_windows_tool_cache: '{{ ludus_install_directory }}/resources/sccm/tools/7zip-{{ ludus_sccm_controller_sevenzip_checksum | regex_replace("^sha256:", "") }}'
+        ludus_sccm_effective_feature_source: '{{ ludus_sccm_host_path }}\windows-features\{{ sccm_windows_iso.stat.checksum[:12] }}'
+
+    - name: Create controller extraction caches
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0770'
+      loop:
+        - '{{ sccm_windows_source_cache }}'
+        - '{{ sccm_windows_tool_cache }}'
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+
+    - name: Download the pinned standalone extraction utility
+      ansible.builtin.get_url:
+        url: '{{ ludus_sccm_controller_sevenzip_url }}'
+        checksum: '{{ ludus_sccm_controller_sevenzip_checksum }}'
+        dest: '{{ sccm_windows_tool_cache }}/7zip-linux-x64.tar.xz'
+        mode: '0660'
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+
+    - name: Unpack the controller extraction utility
+      ansible.builtin.unarchive:
+        src: '{{ sccm_windows_tool_cache }}/7zip-linux-x64.tar.xz'
+        dest: '{{ sccm_windows_tool_cache }}'
+        remote_src: true
+        creates: '{{ sccm_windows_tool_cache }}/7zz'
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+
+    - name: Extract only optional feature payloads from the ISO
+      ansible.builtin.command:
+        argv:
+          - '{{ sccm_windows_tool_cache }}/7zz'
+          - e
+          - '{{ ludus_sccm_windows_iso_path }}'
+          - '-o{{ sccm_windows_source_cache }}'
+          - sources/sxs/*
+          - -ssc-
+          - -y
+        creates: '{{ sccm_windows_source_cache }}/.source-ready'
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+
+    - name: Verify the ISO contains .NET Framework 3.5 payloads
+      ansible.builtin.find:
+        paths: '{{ sccm_windows_source_cache }}'
+        patterns: '(?i).*netfx3.*\.cab'
+        use_regex: true
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+      register: sccm_netfx3_payloads
+
+    - name: Require matching Windows optional feature media
+      ansible.builtin.assert:
+        that: sccm_netfx3_payloads.matched | int > 0
+        fail_msg: The supplied Windows ISO does not contain sources/sxs .NET 3.5 CAB payloads.
+
+    - name: Mark successful source extraction
+      ansible.builtin.copy:
+        content: '{{ sccm_windows_iso.stat.checksum }}'
+        dest: '{{ sccm_windows_source_cache }}/.source-ready'
+        mode: '0660'
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+
+    - name: Create the guest optional feature directory
+      ansible.windows.win_file:
+        path: '{{ ludus_sccm_effective_feature_source }}'
+        state: directory
+
+    - name: Copy optional feature payloads to the site server
+      ansible.windows.win_copy:
+        src: '{{ sccm_windows_source_cache }}/'
+        dest: '{{ ludus_sccm_effective_feature_source }}\'

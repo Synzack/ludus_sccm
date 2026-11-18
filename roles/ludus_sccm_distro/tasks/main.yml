@@ -13,6 +13,11 @@
       - Public
       - Private
 
+- name: Verify Windows is ready for servicing
+  ansible.builtin.include_role:
+    name: synzack.ludus_sccm.ludus_sccm_prerequisites
+    tasks_from: preflight
+
 - name: Install Windows Features
   ansible.windows.win_feature:
     name:
@@ -26,12 +31,21 @@
       - WDS-Deployment
       - WDS-Transport
     state: present
+  register: sccm_windows_features
+
+- name: Reboot after Windows feature installation when required
+  ansible.windows.win_reboot:
+  when: sccm_windows_features.reboot_required
+
+- name: Install Configuration Manager runtime prerequisites
+  ansible.builtin.include_role:
+    name: synzack.ludus_sccm.ludus_sccm_prerequisites
 
 - name: Check if WDS Server was already Initialized
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\WDSServer
   register: wds_registry_check
-  
+
 - name: Initialize WDS Server
   ansible.windows.win_shell: wdsutil /initialize-server /remInst:"C:\RemoteInstall"
   vars:
@@ -68,13 +82,13 @@
       delegate_facts: true # Use localhost to share this var between sccm hosts (like a cache)
 
 - name: Add the Site Server as a Local Admin
-  ansible.windows.win_group_membership:
-    vars:
+  vars:
     ansible_become: true
     ansible_become_method: runas
     ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  ansible.windows.win_group_membership:
     name: Administrators
     members:
       - '{{ ludus_domain_netbios_name }}\{{ hostvars["localhost"]["ludus_sccm_site_server_samaccountname"] }}'

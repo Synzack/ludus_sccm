@@ -25,6 +25,14 @@
       - Public
       - Private
 
+- name: Verify Windows is ready for servicing
+  ansible.builtin.include_role:
+    name: synzack.ludus_sccm.ludus_sccm_prerequisites
+    tasks_from: preflight
+
+- name: Prepare an offline optional feature source when configured
+  ansible.builtin.include_tasks: windows_feature_source.yml
+
 - name: Install Windows Features
   ansible.windows.win_feature:
     name:
@@ -51,7 +59,17 @@
       - Web-ISAPI-Ext
       - Web-Scripting-Tools
       - Web-Mgmt-Service
+    source: '{{ ludus_sccm_effective_feature_source | default(ludus_sccm_windows_feature_source, true) | default(omit, true) }}'
     state: present
+  register: sccm_windows_features
+
+- name: Reboot after Windows feature installation when required
+  ansible.windows.win_reboot:
+  when: sccm_windows_features.reboot_required
+
+- name: Install Configuration Manager runtime prerequisites
+  ansible.builtin.include_role:
+    name: synzack.ludus_sccm.ludus_sccm_prerequisites
 
 # Start SCCM Install-------------------------------------------------------------------
 - name: Begin SCCM Install
@@ -62,6 +80,31 @@
 - name: Begin CM Account Configuration
   ansible.builtin.include_tasks:
     file: cm_accounts.yml
+
+# Configure authenticated proxy access after CM accounts exist
+- name: Configure an existing CM account for authenticated service connection point proxy access
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Set-SiteProxy.ps1') }}"
+    parameters:
+      SiteCode: '{{ ludus_sccm_sitecode }}'
+      SiteServer: '{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
+      ProxyName: '{{ ludus_sccm_scp_proxy_name }}'
+      ProxyPort: '{{ ludus_sccm_scp_proxy_port | int }}'
+      ProxyAccount: '{{ ludus_sccm_scp_proxy_account }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: logon_type=interactive logon_flags=with_profile
+  when: ludus_sccm_scp_use_proxy and ludus_sccm_scp_proxy_account | length > 0
+  register: sccm_scp_proxy
+
+- name: Reload service connection point proxy credentials when changed
+  ansible.windows.win_service:
+    name: SMS_EXECUTIVE
+    state: restarted
+  when: sccm_scp_proxy.changed | default(false)
 
 # Start NAA Configuration--------------------------------------------------------------
 - name: Begin NAA Configuration

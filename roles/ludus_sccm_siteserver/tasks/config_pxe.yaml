@@ -28,6 +28,7 @@
   when:
     - not file_host_check.stat.exists
     - proxmox_iso_storage_pool == "local"
+    - ludus_sccm_win11_iso_path | default('') | length == 0
 
 - name: Stop if we don't have a path to the ISO file and we are not using the local storage pool
   ansible.builtin.fail:
@@ -42,7 +43,6 @@
     dest: "{{ ludus_sccm_host_path }}\\win11.iso"
   when:
     - not file_host_check.stat.exists
-    - proxmox_iso_storage_pool != "local"
     - ludus_sccm_win11_iso_path is defined
     - ludus_sccm_win11_iso_path != ""
 
@@ -82,6 +82,22 @@
     ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+- name: Wait for OS and x64 boot content before subsequent roles can reboot the site
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Test-OsdContent.ps1') }}"
+    parameters:
+      SiteCode: '{{ ludus_sccm_sitecode }}'
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: logon_type=interactive logon_flags=with_profile
+  register: sccm_osd_content
+  until: sccm_osd_content is succeeded
+  retries: 30
+  delay: 20
 
 - name: Create OS Image Task Sequence
   synzack.ludus_sccm.add_os_task_sequence:

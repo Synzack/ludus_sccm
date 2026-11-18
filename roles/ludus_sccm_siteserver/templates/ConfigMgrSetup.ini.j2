@@ -6,25 +6,29 @@ ProductID=EVAL
 SiteCode={{ ludus_sccm_sitecode }}
 SiteName={{ ludus_sccm_sitename }}
 SMSInstallDir=C:\Program Files\Microsoft Configuration Manager
-SDKServer='{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
+SDKServer={{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}
 RoleCommunicationProtocol=HTTPorHTTPS
 ClientsUsePKICertificate=0
 PrerequisiteComp=0
 PrerequisitePath={{ ludus_sccm_win_sccm_config_default_prereq_path }}
-ManagementPoint='{{ ludus_sccm_mgmt_server_hostname }}.{{ ludus_domain_fqdn }}'
+ManagementPoint={{ ludus_sccm_mgmt_server_hostname }}.{{ ludus_domain_fqdn }}
 ManagementPointProtocol=HTTP
-DistributionPoint='{{ ludus_sccm_distro_server_hostname }}.{{ ludus_domain_fqdn }}'
+DistributionPoint={{ ludus_sccm_distro_server_hostname }}.{{ ludus_domain_fqdn }}
 DistributionPointProtocol=HTTP
 DistributionPointInstallIIS=0
 AdminConsole=1
 JoinCEIP=0
 
 [SQLConfigOptions]
-SQLServerName='{{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}'
+SQLServerName={{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}
 DatabaseName=CM_{{ ludus_sccm_sitecode }}
 SQLSSBPort=4022
 
 [CloudConnectorOptions]
-CloudConnector=0
-CloudConnectorServer='{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
-UseProxy=0
+CloudConnector={{ ludus_sccm_install_service_connection_point | bool | int }}
+CloudConnectorServer={{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}
+UseProxy={{ ludus_sccm_scp_use_proxy | bool | int }}
+{% if ludus_sccm_scp_use_proxy %}
+ProxyName={{ ludus_sccm_scp_proxy_name }}
+ProxyPort={{ ludus_sccm_scp_proxy_port }}
+{% endif %}

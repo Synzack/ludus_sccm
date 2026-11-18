@@ -7,13 +7,10 @@ galaxy_info:
   description: Add a SCCM MGMT Server
   company: SpecterOps
   license: GPLv3
-  min_ansible_version: "2.10"
+  min_ansible_version: "2.16"
   platforms:
     - name: Windows
       versions:
-        - "2012R2"
-        - "2016"
-        - "2019"
         - "2022"
 
   galaxy_tags:

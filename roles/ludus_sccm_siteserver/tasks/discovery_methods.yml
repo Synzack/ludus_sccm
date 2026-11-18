@@ -27,10 +27,8 @@
     boundary_group_name: "Discovery Default Boundary Group"
     boundary_group_description: "Default Ludus Boundary Group"
     site_system_server_names:
-      - '{{ ludus_sccm_site_server_hostname }}.{{ ludus_domain_fqdn }}'
       - '{{ ludus_sccm_distro_server_hostname }}.{{ ludus_domain_fqdn }}'
       - '{{ ludus_sccm_mgmt_server_hostname }}.{{ ludus_domain_fqdn }}'
-      - '{{ ludus_sccm_sql_server_hostname }}.{{ ludus_domain_fqdn }}'
     boundary: '{{ ludus_domain_fqdn }}/Default-First-Site-Name'
   vars:
     ansible_become: true

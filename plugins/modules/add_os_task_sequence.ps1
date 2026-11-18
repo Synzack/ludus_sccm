@@ -7,7 +7,7 @@ $spec = @{
         site_code = @{ type = 'str'; required = $true }
         domain_name = @{ type = 'str'; required = $true }
         domain_account = @{ type = 'str'; required = $true }
-        domain_password = @{ type = 'str'; required = $true }
+        domain_password = @{ type = 'str'; required = $true; no_log = $true }
         os_image = @{ type = 'str'; required = $true }
 
     }
@@ -15,7 +15,7 @@ $spec = @{
 }
 $module = [Ansible.Basic.AnsibleModule]::Create($args, $spec)
 
-Import-Module "C:\\Program Files (x86)\\Microsoft Configuration Manager\\AdminConsole\\bin\\ConfigurationManager.psd1"
+Import-Module ConfigurationManager -ErrorAction Stop
 Import-Module ActiveDirectory
 
 #https://www.windows-noob.com/forums/topic/16422-connect-configmgr64-function-to-connect-to-cmsite-sccm-feedback-for-improvement/

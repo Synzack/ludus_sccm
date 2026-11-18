@@ -29,14 +29,26 @@
     ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
 
-- name: Set admin account fact
-  ansible.builtin.set_fact:
-    # ludus_sccm_site_server_samaccountname was set in main.yml so we can use it here without fear of it being undefined
-    ludus_sccm_sql_sysadmin_accounts: '{{ ludus_domain_netbios_name }}\{{ hostvars["localhost"]["ludus_sccm_site_server_samaccountname"] }} {{ ludus_domain_netbios_name }}\{{ defaults.ad_domain_admin }}'
-
 - name: Setup SQL Server - This will take a while
-  ansible.windows.win_shell: |
-    {{ disk_image_out.mount_paths[0] }}setup.exe /Q /IAcceptSQLServerLicenseTerms /ACTION="install" /FEATURES=SQL /INSTANCENAME=MSSQLSERVER /SQLSYSADMINACCOUNTS={{ ludus_sccm_sql_sysadmin_accounts }} /SQLSVCACCOUNT='{{ ludus_domain_netbios_name }}\{{ ludus_sccm_sql_svc_account_username }}' /SQLSVCPASSWORD="{{ ludus_sccm_sql_svc_account_password }}" /SQLMINMEMORY="1024" /SQLMAXMEMORY="16384"
+  no_log: true
+  register: sccm_sql_install
+  failed_when: sccm_sql_install.rc | default(0) not in [0, 3010]
+  ansible.windows.win_command:
+    argv:
+      - '{{ disk_image_out.mount_paths[0] }}setup.exe'
+      - /Q
+      - /IAcceptSQLServerLicenseTerms
+      - /ACTION=install
+      - /FEATURES=SQL
+      - /INSTANCENAME=MSSQLSERVER
+      - '/SQLSYSADMINACCOUNTS={{ ludus_domain_netbios_name }}\{{ hostvars["localhost"]["ludus_sccm_site_server_samaccountname"] }}'
+      - '{{ ludus_domain_netbios_name }}\{{ defaults.ad_domain_admin }}'
+      - '/SQLSVCACCOUNT={{ ludus_domain_netbios_name }}\{{ ludus_sccm_sql_svc_account_username }}'
+      - '/SQLSVCPASSWORD={{ ludus_sccm_sql_svc_account_password }}'
+      - /SQLMINMEMORY=1024
+      - '/SQLMAXMEMORY={{ ludus_sccm_sql_max_memory_mb }}'
+      - /SQLCOLLATION=SQL_Latin1_General_CP1_CI_AS
+      - /TCPENABLED=1
   vars:
     ansible_become: true
     ansible_become_method: runas
@@ -45,6 +57,10 @@
     ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
   args:
     creates: "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\Binn\\sqlservr.exe"
+
+- name: Reboot after SQL setup when required
+  ansible.windows.win_reboot:
+  when: sccm_sql_install.rc | default(0) == 3010
 
 - name: Unmount ISO
   community.windows.win_disk_image:

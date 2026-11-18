@@ -17,7 +17,7 @@ $spec = @{
 }
 $module = [Ansible.Basic.AnsibleModule]::Create($args, $spec)
 
-Import-Module "C:\\Program Files (x86)\\Microsoft Configuration Manager\\AdminConsole\\bin\\ConfigurationManager.psd1"
+Import-Module ConfigurationManager -ErrorAction Stop
 Import-Module ActiveDirectory
 $domainInfo = Get-ADDomain
 $container = "LDAP://"+$domainInfo.DistinguishedName

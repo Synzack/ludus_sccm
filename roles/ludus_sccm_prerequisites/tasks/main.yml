@@ -1,0 +1,73 @@
+---
+- name: Check .NET Framework 4.8 or later
+  ansible.windows.win_powershell:
+    script: |
+      $Ansible.Changed = $false
+      $release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release
+      if ($release -lt 528040) { throw '.NET Framework 4.8 or later is required. Install it and reboot before continuing.' }
+
+- name: Create controller prerequisite cache
+  ansible.builtin.file:
+    path: '{{ ludus_install_directory }}/resources/sccm'
+    state: directory
+    mode: '0770'
+  delegate_to: localhost
+  vars:
+    ansible_become: false
+
+- name: Cache SQL connectivity prerequisites
+  ansible.builtin.get_url:
+    url: '{{ item.url }}'
+    dest: '{{ ludus_install_directory }}/resources/sccm/{{ item.filename }}'
+    mode: '0660'
+    timeout: 120
+  delegate_to: localhost
+  vars:
+    ansible_become: false
+  loop:
+    - {url: '{{ ludus_sccm_vcredist_url }}', filename: 'vc_redist-{{ ludus_sccm_vcredist_version }}-x64.exe'}
+    - {url: '{{ ludus_sccm_vcredist_x86_url }}', filename: 'vc_redist-{{ ludus_sccm_vcredist_version }}-x86.exe'}
+    - {url: '{{ ludus_sccm_odbc_url }}', filename: 'msodbcsql-{{ ludus_sccm_odbc_version }}-x64.msi'}
+
+- name: Create runtime directory
+  ansible.windows.win_file:
+    path: '{{ ludus_sccm_runtime_path }}'
+    state: directory
+
+- name: Copy runtime installers
+  ansible.windows.win_copy:
+    src: '{{ ludus_install_directory }}/resources/sccm/{{ item }}'
+    dest: '{{ ludus_sccm_runtime_path }}\{{ item }}'
+  loop:
+    - 'vc_redist-{{ ludus_sccm_vcredist_version }}-x64.exe'
+    - 'vc_redist-{{ ludus_sccm_vcredist_version }}-x86.exe'
+    - 'msodbcsql-{{ ludus_sccm_odbc_version }}-x64.msi'
+
+- name: Install Visual C++ runtime
+  ansible.windows.win_package:
+    path: '{{ ludus_sccm_runtime_path }}\vc_redist-{{ ludus_sccm_vcredist_version }}-x64.exe'
+    arguments: /install /quiet /norestart
+    creates_path: 'C:\Windows\System32\vcruntime140.dll'
+    creates_version: '{{ ludus_sccm_vcredist_version }}'
+    expected_return_code: [0, 1638, 3010]
+  register: sccm_vcredist
+
+- name: Install the x86 Visual C++ runtime required by OLE DB 19
+  ansible.windows.win_package:
+    path: '{{ ludus_sccm_runtime_path }}\vc_redist-{{ ludus_sccm_vcredist_version }}-x86.exe'
+    arguments: /install /quiet /norestart
+    creates_path: 'C:\Windows\SysWOW64\vcruntime140.dll'
+    creates_version: '{{ ludus_sccm_vcredist_version }}'
+    expected_return_code: [0, 1638, 3010]
+  register: sccm_vcredist_x86
+
+- name: Install supported SQL ODBC driver
+  ansible.windows.win_package:
+    path: '{{ ludus_sccm_runtime_path }}\msodbcsql-{{ ludus_sccm_odbc_version }}-x64.msi'
+    arguments: IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL
+    state: present
+  register: sccm_odbc
+
+- name: Restart after prerequisite installation when required
+  ansible.windows.win_reboot:
+  when: sccm_vcredist.reboot_required | default(false) or sccm_vcredist_x86.reboot_required | default(false) or sccm_odbc.reboot_required | default(false)

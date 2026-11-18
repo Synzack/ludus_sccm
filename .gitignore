@@ -1,3 +1,6 @@
 .DS_Store
 .vscode
 synzack*.tar.gz
+__pycache__/
+*.py[cod]
+.pytest_cache/

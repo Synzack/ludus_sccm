@@ -1,5 +1,6 @@
 ---
 - name: Create Domain Users Needed for SCCM
+  no_log: true
   microsoft.ad.user:
     name: '{{ user_creation.name }}'
     password: '{{ user_creation.password }}'
@@ -31,6 +32,7 @@
   when: user_creation.configure_bool
 
 - name: Create CM Accounts for Each Domain User
+  no_log: true
   synzack.ludus_sccm.cmaccounts:
     name: '{{ cm_creation.name }}'
     password: '{{ cm_creation.password }}'

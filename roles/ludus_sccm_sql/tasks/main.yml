@@ -13,10 +13,14 @@
       - Public
       - Private
 
+- name: Verify Windows is ready for servicing
+  ansible.builtin.include_role:
+    name: synzack.ludus_sccm.ludus_sccm_prerequisites
+    tasks_from: preflight
+
 - name: Install .NET Windows Features
   ansible.windows.win_feature:
     name:
-      - NET-Framework-Core
       - NET-Framework-45-Core
       - RSAT
       - Web-WebServer
@@ -24,6 +28,12 @@
       - Web-Metabase
       - Web-WMI
     state: present
+  register: sccm_sql_features
+
+- name: Reboot after SQL Windows feature installation when required
+  ansible.windows.win_reboot:
+  when: sccm_sql_features.reboot_required
+
 
 # Why do we have to do this lookup? Because if the user specified a hostname > 15 characters
 # Windows will truncate the comptuer name to the first 15 (plus a '$') and computer names

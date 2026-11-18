@@ -1,0 +1,4 @@
+---
+- name: Check Windows servicing readiness before feature installation
+  ansible.windows.win_powershell:
+    script: "{{ lookup('file', role_path ~ '/files/Test-WindowsReadiness.ps1') }}"
