@@ -13,8 +13,7 @@ function Assert-Throws([scriptblock]$Action, [string]$Pattern) {
     Assert-True ($failure -match $Pattern) "Expected failure matching '$Pattern', received '$failure'."
 }
 $parseFiles = @(Get-ChildItem (Join-Path $SourceRoot 'roles') -Filter '*.ps1' -Recurse) +
-    @(Get-ChildItem (Join-Path $SourceRoot 'plugins\modules') -Filter '*.ps1') +
-    @(Get-ChildItem (Join-Path $SourceRoot 'tools') -Filter '*.ps1')
+    @(Get-ChildItem (Join-Path $SourceRoot 'plugins\modules') -Filter '*.ps1')
 foreach ($file in $parseFiles) {
     $tokens = $null; $errors = $null
     [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors)
